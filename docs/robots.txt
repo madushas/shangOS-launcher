@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://shangos.madusha.dev/sitemap.xml
