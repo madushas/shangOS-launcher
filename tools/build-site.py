@@ -74,12 +74,13 @@ def bench_section():
             a, c = mine["highlights"].get("first_frame_ms"), o["highlights"].get("first_frame_ms")
             if a and c:
                 notes.append("Start-up time was about the same." if abs(a - c) / max(a, c) < 0.1 else f'Start-up took {a:g}&nbsp;ms against {c:g}&nbsp;ms.')
-    stale = [f'{r["name"]} {r["version"]}' for r in res if r["name"] == "shangOS" and r["version"] != RELEASED]
+    stale = [f'{r["name"]} {r["version"]}' for r in res
+             if r["name"] == "shangOS" and _vt(r["version"]) > _vt(RELEASED)]
     day = (b.get("generated") or "")[:10]
     dev = b["device"]
     ram = f'{dev["memory_kb"] / 1048576:.1f}&nbsp;GB RAM, ' if dev.get("memory_kb") else ""
     fine = (f'Measured {e(day)} on one TV: {e(dev["description"])} ({ram}{e(dev.get("display", ""))}). '
-            + (f'The current release is {RELEASED}; {e(stale[0])} was measured, so newer versions have not been measured yet. ' if stale else "")
+            + (f'The current build is {RELEASED}; {e(stale[0])} was measured, so newer versions have not been measured yet. ' if stale else "")
             + f'One TV on one day is a guide, not a promise; differences under about 10% are noise. Memory is Android&rsquo;s own figure (PSS), in MB of 1,024&nbsp;kB. The method is <a href="{REPO}/blob/main/docs/MEASURING.md" rel="noopener">written down</a>, '
             f'the raw numbers are in <a href="/data/bench.json">bench.json</a>, and <code>tools/bench.sh</code> measures your own TV.')
     return f"""
@@ -547,7 +548,7 @@ def page_guide():
         ["Weather", "Hourly and seven-day forecast for your chosen city, or the main city of your TV&rsquo;s time zone. Cached on the TV.", "Off until you turn it on. Uses the internet; see <a href=\"/privacy/\">Privacy</a>."],
     ])))
     s.append(("settings", "Settings", """
-<p>Settings opens over a soft scrim so you see wallpaper changes as you make them. The first page lists five entries: Appearance, Motion and sound, Home, Privacy and System. Each group is a page of its own, and Back returns to the first page.{nx_060}</p>""" + table(["Section", "What it does"], [
+<p>Settings opens over a soft scrim so you see wallpaper changes as you make them. The sections (Appearance, Motion and sound, Home, Privacy, System) are listed down the left and each shows its rows on the right with help underneath; Down moves between sections, Right enters the rows, Left and Back return.{nx_060} On the bar at the top, Left and Right show the neighbouring page at once while the focus stays on the bar, and Down goes into the page.{nx_060}</p>""" + table(["Section", "What it does"], [
         ["Appearance: Wallpaper", "A gallery of all eight looks, with a full-screen preview, and your own photo once you add one (from 0.4.5)."],
         ["Appearance: Your name", "The greeting on Home. Stored only on the TV."],
         ["Home: City", "Where the weather and the sunrise are for. Choose your city from a list built into the app (also in the first-run setup), or keep Automatic, the main city of your TV&rsquo;s time zone. Nothing is looked up and nothing leaves the TV (from 0.4.6)."],

@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.6.2: A roomier Settings, and a bar that switches at once
+- **Settings redesigned** in the usual settings layout: the five sections down the left, and on the right one panel with the section's title,
+  a sentence about it and its rows, with the help for the row in focus underneath (and a picture for the wallpaper rows). Rows are one panel
+  with hairlines between them instead of a card each, with 8-unit spacing throughout. Down the sections shows each at once; Right enters the
+  rows, Left or Back returns to the sections. This replaces the first page of 0.6.0, which wasted the screen.
+- **Fixed**: Up on the second Settings row jumped to the tab bar instead of the first row. Up now moves to the previous row, and only the
+  first row goes to the bar.
+- **The tab bar behaves like tabs**: Left and Right show the neighbouring page at once (150 ms) while the focus stays on the bar; Down goes
+  into the page (into the sections list on Settings). OK still opens a page and moves into it.
+
 ## 0.6.1: Safety (from checking couch-tv)
 - **The setup scripts no longer switch off the TV's own home or setup apps.** couch-tv found that switching off Google TV's home and setup
   apps can leave some TVs unable to restart (a blank screen and a loop); our scripts did the same. Now `shangos.sh home`, `setup.sh` and

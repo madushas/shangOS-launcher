@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "generated": "2026-10-30T05:39:07Z",
+  "generated": "2026-11-12T05:37:29Z",
   "tool": "tools/bench.sh (tools/baseline.sh)",
   "method": "https://github.com/madushas/shangos-launcher/blob/main/docs/MEASURING.md",
   "device": {
@@ -95,6 +95,55 @@
         "cpu_idle_percent_of_core": 4.4,
         "janky_frames_percent": 3.7,
         "apk_mb": 4.3
+      },
+      "complete": true
+    },
+    {
+      "id": "shangos",
+      "name": "shangOS",
+      "variant": null,
+      "package": "dev.madusha.shangos",
+      "version": "0.6.2",
+      "measured_at": "2026-11-12T05:37:29Z",
+      "compile": "verify",
+      "metrics": {
+        "apk_bytes": 2935990,
+        "launch_runs": 8,
+        "launch_first_ms": 535,
+        "launch_median_ms": 535,
+        "launch_min_ms": 520,
+        "launch_max_ms": 567,
+        "fully_drawn_median_ms": 552,
+        "mem_pss_kb": 43025,
+        "mem_java_kb": 2084,
+        "mem_native_kb": 14316,
+        "mem_graphics_kb": 16960,
+        "mem_code_kb": 1400,
+        "mem_swap_kb": 106,
+        "cpu_idle_pct": 0.2,
+        "frames": 107,
+        "jank_pct": 3.74,
+        "p50_ms": 22,
+        "p90_ms": 26,
+        "p99_ms": 36,
+        "slow_ui_frames": 0,
+        "return_ms_median": 138,
+        "return_ms_max": 224,
+        "return_jank_pct": 9.12,
+        "mem_after_returns_pss_kb": 56087,
+        "after_java_kb": 4336,
+        "after_native_kb": 18144,
+        "after_graphics_kb": 18732,
+        "after_code_kb": 3680
+      },
+      "highlights": {
+        "memory_idle_mb": 42.0,
+        "memory_after_returns_mb": 54.8,
+        "first_frame_ms": 535,
+        "return_to_home_ms": 138,
+        "cpu_idle_percent_of_core": 0.2,
+        "janky_frames_percent": 3.7,
+        "apk_mb": 2.8
       },
       "complete": true
     }

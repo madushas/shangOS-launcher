@@ -39,7 +39,8 @@ final class Chrome {
         /** The page being shown: one of {@link #PAGES}. */
         String page();
 
-        void showPage(String page);
+        /** Shows {@code page}; {@code focus}: its content takes focus, else the bar keeps it. */
+        void showPage(String page, boolean focus);
 
         /** Home's first widget, or null when Home has none. */
         View firstWidget();
@@ -112,7 +113,7 @@ final class Chrome {
         tab.setOnClickListener(
                 v -> {
                     host.click();
-                    host.showPage(PAGES[index]);
+                    host.showPage(PAGES[index], true);
                 });
         // One pill slides between tabs; leaving the bar it settles, translucent, on the current
         // page.
@@ -127,15 +128,23 @@ final class Chrome {
                 });
         tab.setOnKeyListener(
                 (v, key, e) -> {
-                    if (e.getAction() == KeyEvent.ACTION_DOWN
-                            && key == KeyEvent.KEYCODE_DPAD_DOWN) {
-                        View widget = index == 0 ? host.firstWidget() : null;
-                        if (!host.page().equals(PAGES[index])) host.showPage(PAGES[index]);
-                        else if (widget != null) widget.requestFocus();
-                        else host.focusFirst();
+                    if (e.getAction() != KeyEvent.ACTION_DOWN) return false;
+                    // Like tabs: Left and Right show the neighbouring page at once, the focus stays
+                    // on the bar; Down goes into the page.
+                    if (key == KeyEvent.KEYCODE_DPAD_LEFT || key == KeyEvent.KEYCODE_DPAD_RIGHT) {
+                        int to = index + (key == KeyEvent.KEYCODE_DPAD_LEFT ? -1 : 1);
+                        if (to >= 0 && to < PAGES.length && e.getRepeatCount() == 0) {
+                            tabs.get(to).requestFocus();
+                            host.showPage(PAGES[to], false);
+                        }
                         return true;
                     }
-                    return false;
+                    if (key != KeyEvent.KEYCODE_DPAD_DOWN) return false;
+                    View widget = index == 0 ? host.firstWidget() : null;
+                    if (!host.page().equals(PAGES[index])) host.showPage(PAGES[index], true);
+                    else if (widget != null) widget.requestFocus();
+                    else host.focusFirst();
+                    return true;
                 });
         return tab;
     }

@@ -122,15 +122,7 @@ public final class MainActivity extends Activity {
                         new AppsSettings(prefs, repo, overlays, () -> pages.order(), this::reload));
         settings =
                 new SettingsScreen(
-                        this,
-                        ui,
-                        prefs,
-                        overlays,
-                        screenHost,
-                        settingsHost,
-                        privacy,
-                        weather,
-                        settingsPages);
+                        this, ui, prefs, screenHost, settingsHost, privacy, settingsPages);
         getWindow().setDecorFitsSystemWindows(false); // edge to edge, under any system bar
         sonic = new SonicFeedback(this);
         feedback = new Feedback(prefs, sonic);
@@ -402,7 +394,7 @@ public final class MainActivity extends Activity {
         content.setAlpha(1);
         content.setTranslationX(0);
         content.removeAllViews();
-        settings.clear(previous.equals("settings") && next.equals("settings"));
+        settings.clear();
         page = next;
         hero.reset(page.equals("home"));
         light = daylightSync.pale();
@@ -417,7 +409,7 @@ public final class MainActivity extends Activity {
         chrome.shade().setAlpha(page.equals("settings") ? 1 : 0);
         if (page.equals("settings")) {
             settings.show(focus);
-            animatePage(previous, transition);
+            animatePage(previous, transition, !focus);
             return;
         }
         pages.build(content, page.equals("home"));
@@ -430,10 +422,11 @@ public final class MainActivity extends Activity {
                         hero.hold(greet);
                         pages.focusFirst();
                     });
-        animatePage(previous, transition);
+        animatePage(previous, transition, !focus);
     }
 
-    private void animatePage(String previous, boolean transition) {
+    /** {@code quick}: browsing with the tab bar, so the page changes at once (150 ms). */
+    private void animatePage(String previous, boolean transition, boolean quick) {
         if (!transition) return;
         int before = previous.equals("home") ? 0 : previous.equals("apps") ? 1 : 2;
         int after = page.equals("home") ? 0 : page.equals("apps") ? 1 : 2;
@@ -445,16 +438,16 @@ public final class MainActivity extends Activity {
             if (!(content.getChildAt(i) instanceof ScrollView)
                     && !"scroll-frame".equals(content.getChildAt(i).getTag()))
                 entering.add(content.getChildAt(i));
-        entering.addAll(page.equals("settings") ? settings.rows() : pages.entering());
+        if (!page.equals("settings")) entering.addAll(pages.entering());
         for (int i = 0; i < entering.size(); i++) {
             View view = entering.get(i);
             float offset = ui.px(16) * direction;
             view.setAlpha(0);
             view.setTranslationX(offset);
             ObjectAnimator fade = ObjectAnimator.ofFloat(view, View.ALPHA, 0, 1);
-            fade.setDuration(270);
+            fade.setDuration(quick ? 150 : 270);
             ObjectAnimator slide = ObjectAnimator.ofFloat(view, View.TRANSLATION_X, offset, 0);
-            slide.setDuration(340);
+            slide.setDuration(quick ? 200 : 340);
             AnimatorSet set = new AnimatorSet();
             set.playTogether(fade, slide);
             set.setInterpolator(Motion.EASE);
@@ -482,11 +475,7 @@ public final class MainActivity extends Activity {
 
     private void handleBack() {
         if (pages.cancelGrab()) return;
-        int fromGroup = page.equals("settings") && !overlays.isOpen() ? settings.up() : -1;
-        if (fromGroup >= 0) {
-            reload(fromGroup); // a Settings page goes back to the first page
-            return;
-        }
+        if (page.equals("settings") && !overlays.isOpen() && settings.back()) return;
         if (overlays.isOpen()) {
             if (SystemClock.uptimeMillis() < backGuardUntil) return; // see onResume
             overlays.close(true);
@@ -685,8 +674,8 @@ public final class MainActivity extends Activity {
                     return page;
                 }
 
-                public void showPage(String next) {
-                    MainActivity.this.showPage(next, true);
+                public void showPage(String next, boolean focus) {
+                    MainActivity.this.showPage(next, focus);
                 }
 
                 public View firstWidget() {
@@ -694,7 +683,8 @@ public final class MainActivity extends Activity {
                 }
 
                 public void focusFirst() {
-                    pages.focusFirst();
+                    if (page.equals("settings")) settings.focusSections();
+                    else pages.focusFirst();
                 }
             };
 
