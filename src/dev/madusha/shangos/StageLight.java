@@ -28,8 +28,8 @@ final class StageLight extends FrameLayout {
     StageLight(Context context) {
         super(context);
         setClipChildren(false);
-        int width = getResources().getDisplayMetrics().widthPixels;
-        int height = getResources().getDisplayMetrics().heightPixels;
+        int width = Screen.width(context);
+        int height = Screen.height(context);
         size = Math.round(width * .9f);
         for (int i = 0; i < 2; i++) {
             lights[i] = new View(context);

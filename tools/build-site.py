@@ -74,13 +74,12 @@ def bench_section():
             a, c = mine["highlights"].get("first_frame_ms"), o["highlights"].get("first_frame_ms")
             if a and c:
                 notes.append("Start-up time was about the same." if abs(a - c) / max(a, c) < 0.1 else f'Start-up took {a:g}&nbsp;ms against {c:g}&nbsp;ms.')
-    stale = [f'{r["name"]} {r["version"]}' for r in res
-             if r["name"] == "shangOS" and _vt(r["version"]) > _vt(RELEASED)]
+    stale = [f'{r["name"]} {r["version"]}' for r in res if r["name"] == "shangOS" and r["version"] != RELEASED]
     day = (b.get("generated") or "")[:10]
     dev = b["device"]
     ram = f'{dev["memory_kb"] / 1048576:.1f}&nbsp;GB RAM, ' if dev.get("memory_kb") else ""
     fine = (f'Measured {e(day)} on one TV: {e(dev["description"])} ({ram}{e(dev.get("display", ""))}). '
-            + (f'The current build is {RELEASED}; {e(stale[0])} was measured, so newer versions have not been measured yet. ' if stale else "")
+            + (f'The current release is {RELEASED}; {e(stale[0])} was measured, so newer versions have not been measured yet. ' if stale else "")
             + f'One TV on one day is a guide, not a promise; differences under about 10% are noise. Memory is Android&rsquo;s own figure (PSS), in MB of 1,024&nbsp;kB. The method is <a href="{REPO}/blob/main/docs/MEASURING.md" rel="noopener">written down</a>, '
             f'the raw numbers are in <a href="/data/bench.json">bench.json</a>, and <code>tools/bench.sh</code> measures your own TV.')
     return f"""
@@ -559,6 +558,8 @@ def page_guide():
         ["Home: Apps order", "How the Apps tab is ordered: your own order, A to Z, or recently used (from 0.6.0)."],
         ["Home: Hidden apps", "The apps hidden from Home; choose one to show it again (from 0.6.0)."],
         ["Motion and sound: Room lighting", "The coloured light behind the app row (from 0.4.3)."],
+        ["Appearance: Layout size", "How many apps share a row: Compact (6), Comfortable (5) or Cozy (4) (from 0.6.3)."],
+        ["Appearance: Status icons", "The network, VPN and muted icons beside the clock: Always, or Only problems (from 0.6.3)."],
         ["Appearance: Frosted glass", "Bars, cards and menus show a blurred copy of the wallpaper behind them. Off with the Light performance level (from 0.5.0)."],
         ["Motion and sound: Calm mode", "The tab bar and clock fade back after 20 quiet seconds (from 0.5.0)."],
         ["Privacy", "Switches for weather and posters, a runtime Offline mode, and the signing fingerprint of this build."],

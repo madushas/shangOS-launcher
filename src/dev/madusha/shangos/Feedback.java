@@ -30,7 +30,7 @@ final class Feedback {
     void step(int index) {
         if (prefs.sound())
             sonic.step(
-                    (index % AppTile.COLUMNS) / (AppTile.COLUMNS - 1f), directionX + directionY);
+                    (index % Metrics.columns) / (Metrics.columns - 1f), directionX + directionY);
     }
 
     int directionX() {

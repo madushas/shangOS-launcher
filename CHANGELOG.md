@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.6.3: Roomier layout, a bigger preview, and status icons
+- **Layout size** (Settings, Appearance): Compact (6 apps a row), Comfortable (5, the default) or Cozy (4, larger tiles with more space).
+  Every size keeps the same 50-unit side margins, so the row never runs off a bigger screen.
+- **Bigger corners and spacing**: tiles have a 24-unit radius (was 16), gaps grow with the size, and the tab bar and Settings text are larger.
+- **Settings** has more air: 18-unit row titles, a 56-unit row height with 8 units between rows (no hairlines), larger section titles, and
+  a slim scroll bar beside the rows that shows where you are in a long list. A part of the next row is visible at the bottom, so the list
+  does not look cut off.
+- **Status icons** beside the clock: Wi-Fi with its bars (or Ethernet), an amber crossed Wi-Fi when there is no network, a lock while a VPN
+  is on, and a crossed speaker while the sound is muted. Settings, Status icons: "Always" or "Only problems".
+- **Debug builds only**: Settings, Preview size shows the launcher laid out at 1080p or 4K and scaled to your 720p TV, to check how a bigger
+  screen looks. Release builds have no such row.
+- The hero backdrop is shorter and fades more gently into the wallpaper.
+- Under the hood: `Metrics` holds the tile sizes (one place, unit tested), `Screen` the screen size the layout is built for, and
+  `DisplaySettings` the new Appearance rows. Tests: 85.
+
 ## 0.6.2: A roomier Settings, and a bar that switches at once
 - **Settings redesigned** in the usual settings layout: the five sections down the left, and on the right one panel with the section's title,
   a sentence about it and its rows, with the help for the row in focus underneath (and a picture for the wallpaper rows). Rows are one panel

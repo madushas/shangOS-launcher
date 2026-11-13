@@ -25,7 +25,7 @@ final class TileMotion {
         start();
         if (motion) {
             tile.art.animate().cancel();
-            float depthX = focused ? ui.px((tile.index % AppTile.COLUMNS - 2.5f) * .7f) : 0;
+            float depthX = focused ? ui.px((tile.index % Metrics.columns - 2.5f) * .7f) : 0;
             float depthY = focused ? -ui.px(1) : 0;
             if (focused) {
                 tile.art.setTranslationX(depthX - ui.px(host.directionX() * 4.5f));

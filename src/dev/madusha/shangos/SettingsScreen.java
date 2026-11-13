@@ -65,8 +65,8 @@ final class SettingsScreen {
     };
 
     // Layout, in the launcher's 960 x 540 units, on an 8 unit grid.
-    private static final int RAIL_X = 48, RAIL_W = 224, ITEM_H = 48, ITEM_GAP = 8, TOP = 112;
-    private static final int PANEL_X = 304, PANEL_W = 608, PANEL_H = 384, ROW_H = 56;
+    private static final int RAIL_X = 48, RAIL_W = 224, ITEM_H = 48, ITEM_GAP = 8, TOP = 104;
+    private static final int PANEL_X = 304, PANEL_W = 608, PANEL_H = 392, ROW_H = 56, ROW_GAP = 8;
 
     private final Activity activity;
     private final Ui ui;
@@ -83,6 +83,7 @@ final class SettingsScreen {
     private ScrollView scroll;
     private TextView title, about, help;
     private ImageView helpImage;
+    private Indicator indicator;
     private ValueAnimator glide;
     private int lastRow;
 
@@ -185,10 +186,10 @@ final class SettingsScreen {
         FrameLayout panel = new FrameLayout(activity);
         panel.setBackground(ui.glass(panel, host.light(), 24));
         content.addView(panel, ui.pos(PANEL_W, PANEL_H, PANEL_X, TOP));
-        title = ui.text("", 28, ink(0xFF), "sans-serif-medium");
-        panel.addView(title, ui.pos(560, 36, 24, 24));
-        about = ui.text("", 15, ink(0xB3), "sans-serif");
-        panel.addView(about, ui.pos(560, 24, 24, 64));
+        title = ui.text("", 32, ink(0xFF), "sans-serif-medium");
+        panel.addView(title, ui.pos(540, 40, 24, 20));
+        about = ui.text("", 16, ink(0xB3), "sans-serif");
+        panel.addView(about, ui.pos(540, 24, 24, 62));
         // The list scrolls itself (reveal) so a focused row is never cut at the edge.
         scroll =
                 new ScrollView(activity) {
@@ -204,19 +205,21 @@ final class SettingsScreen {
         list = new LinearLayout(activity);
         list.setOrientation(LinearLayout.VERTICAL);
         scroll.addView(list);
-        panel.addView(scroll, ui.pos(PANEL_W - 16, 232, 8, 104));
-        View rule = new View(activity);
-        rule.setBackgroundColor(ink(0x1F));
-        panel.addView(rule, ui.pos(PANEL_W - 48, 1, 24, 344 - 1));
+        // A slim bar beside the rows says where the visible part sits in the list, so nobody
+        // thinks it ends early.
+        panel.addView(scroll, ui.pos(PANEL_W - 32, 240, 8, 96));
+        indicator = new Indicator(activity);
+        panel.addView(indicator, ui.pos(4, 224, PANEL_W - 16, 104));
+        scroll.setOnScrollChangeListener((v, x, y, ox, oy) -> indicator.update(scroll, list));
         helpImage = new ImageView(activity);
         helpImage.setScaleType(ImageView.ScaleType.CENTER_CROP);
         helpImage.setBackground(ui.shape(0x1FFFFFFF, 6));
         helpImage.setClipToOutline(true);
         helpImage.setVisibility(View.GONE);
-        panel.addView(helpImage, ui.pos(64, 36, 24, 350));
-        help = ui.text("", 14, ink(0xD9), "sans-serif");
+        panel.addView(helpImage, ui.pos(64, 36, 24, 348));
+        help = ui.text("", 15, ink(0xD9), "sans-serif");
         help.setMaxLines(2);
-        panel.addView(help, ui.pos(560, 32, 24, 352));
+        panel.addView(help, ui.pos(560, 40, 24, 344));
         build();
         paintSections();
         if (focus) screens.post(this::focusSections);
@@ -245,6 +248,7 @@ final class SettingsScreen {
                 pages.system(kit, list, rows);
         }
         scroll.scrollTo(0, 0);
+        list.post(() -> indicator.update(scroll, list));
         preview(0, "", "");
         lastRow = 0;
     }
@@ -294,7 +298,7 @@ final class SettingsScreen {
         item.setFocusableInTouchMode(true);
         item.setSoundEffectsEnabled(false);
         item.setContentDescription(TITLES[g]);
-        TextView name = ui.text(TITLES[g], 17, ink(0xFF), "sans-serif-medium");
+        TextView name = ui.text(TITLES[g], 18, ink(0xFF), "sans-serif-medium");
         item.addView(name, ui.pos(RAIL_W - 40, 24, 20, 12));
         item.setOnFocusChangeListener(
                 (v, f) -> {
@@ -398,12 +402,12 @@ final class SettingsScreen {
         row.setFocusable(true);
         row.setFocusableInTouchMode(true);
         row.setSoundEffectsEnabled(false);
-        TextView name = ui.text(label, 17, Color.WHITE, "sans-serif-medium");
+        TextView name = ui.text(label, 18, Color.WHITE, "sans-serif-medium");
         row.addView(name, ui.pos(320, 24, 24, 16));
         TextView detail = null;
         if (value != null) {
             String text = value.get();
-            detail = ui.text(text + (text.isEmpty() ? "›" : "   ›"), 15, 0xB3FFFFFF, "sans-serif");
+            detail = ui.text(text + (text.isEmpty() ? "›" : "   ›"), 16, 0xB3FFFFFF, "sans-serif");
             detail.setGravity(Gravity.RIGHT);
             row.addView(detail, ui.pos(240, 24, 312, 16));
         }
@@ -412,8 +416,6 @@ final class SettingsScreen {
             row.addView(track, ui.pos(44, 26, 524, 15));
             row.addView(knob, ui.pos(22, 22, 526, 17));
         }
-        final View rule = new View(activity);
-        row.addView(rule, ui.pos(PANEL_W - 48 - 16, 1, 16, ROW_H - 1));
         final TextView valueView = detail;
         Runnable paint =
                 () -> {
@@ -423,8 +425,6 @@ final class SettingsScreen {
                     name.setTextColor(f ? on : ink(0xFF));
                     if (valueView != null)
                         valueView.setTextColor(f ? (pale ? 0xB3FFFFFF : 0xFF5B6472) : ink(0xA6));
-                    rule.setBackgroundColor(ink(0x1F));
-                    rule.setVisibility(f ? View.INVISIBLE : View.VISIBLE);
                     if (toggle != null) {
                         boolean enabled = isOn(toggle);
                         track.setBackground(
@@ -483,7 +483,40 @@ final class SettingsScreen {
                     }
                     return key == KeyEvent.KEYCODE_DPAD_RIGHT;
                 });
-        parent.addView(row, new LinearLayout.LayoutParams(-1, ui.px(ROW_H)));
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-1, ui.px(ROW_H));
+        lp.bottomMargin = ui.px(ROW_GAP);
+        parent.addView(row, lp);
         return row;
+    }
+
+    /** A slim bar beside the rows: where the visible part sits in the whole list. */
+    private final class Indicator extends View {
+        private final android.graphics.Paint paint =
+                new android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG);
+        private float top, size = 1;
+
+        Indicator(Activity context) {
+            super(context);
+            setVisibility(INVISIBLE);
+        }
+
+        void update(ScrollView sv, View column) {
+            int total = column.getHeight(), shown = sv.getHeight();
+            boolean needed = total > shown + 4 && shown > 0;
+            setVisibility(needed ? VISIBLE : INVISIBLE);
+            if (!needed) return;
+            size = shown / (float) total;
+            top = sv.getScrollY() / (float) total;
+            invalidate();
+        }
+
+        @Override
+        protected void onDraw(android.graphics.Canvas canvas) {
+            float w = getWidth(), h = getHeight();
+            paint.setColor(ink(0x24));
+            canvas.drawRoundRect(0, 0, w, h, w / 2, w / 2, paint);
+            paint.setColor(ink(0xB3));
+            canvas.drawRoundRect(0, top * h, w, (top + size) * h, w / 2, w / 2, paint);
+        }
     }
 }

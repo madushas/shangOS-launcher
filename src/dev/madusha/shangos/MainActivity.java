@@ -81,7 +81,9 @@ public final class MainActivity extends Activity {
             return;
         }
         prefs = Prefs.of(this);
-        ui = new Ui(this, getResources().getDisplayMetrics().widthPixels / 960f);
+        Screen.preview = Flavor.DEBUG ? prefs.previewWidth() : 0;
+        Metrics.apply(prefs.layoutSize());
+        ui = new Ui(this, Screen.width(this) / 960f);
         overlays = new Overlays(overlaysHost, ui);
         WatchNext watchNext = new WatchNext(this, WidgetBoard.IO);
         hero = new Hero(this, ui, prefs, handler, watchNext, () -> feedback.motion(), () -> light);
@@ -119,7 +121,8 @@ public final class MainActivity extends Activity {
                         homeScreen,
                         weather,
                         new ScreenSaverSettings(this, overlays, privacy),
-                        new AppsSettings(prefs, repo, overlays, () -> pages.order(), this::reload));
+                        new AppsSettings(prefs, repo, overlays, () -> pages.order(), this::reload),
+                        new DisplaySettings(this, prefs, overlays, this::reload));
         settings =
                 new SettingsScreen(
                         this, ui, prefs, screenHost, settingsHost, privacy, settingsPages);
@@ -380,7 +383,7 @@ public final class MainActivity extends Activity {
         root.addView(content, new FrameLayout.LayoutParams(-1, -1));
         chrome.addTo(root);
         chrome.paint();
-        setContentView(root);
+        Screen.show(this, root);
         showPage("home", false);
     }
 

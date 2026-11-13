@@ -161,6 +161,33 @@ final class Prefs {
         sp.edit().putInt("wallpaper", index).apply();
     }
 
+    /** Settings, Layout size: "compact", "comfortable" or "cozy" (see Metrics). */
+    String layoutSize() {
+        return sp.getString("layout_size", "comfortable");
+    }
+
+    void setLayoutSize(String size) {
+        sp.edit().putString("layout_size", size).apply();
+    }
+
+    /** Debug builds: the width of the screen to pretend to be (1920, 3840), 0 for the real one. */
+    int previewWidth() {
+        return sp.getInt("preview_width", 0);
+    }
+
+    void setPreviewWidth(int width) {
+        sp.edit().putInt("preview_width", width).apply();
+    }
+
+    /** Status icons beside the clock: "all" (network, VPN, muted) or "alerts" (only a problem). */
+    String statusMode() {
+        return sp.getString("status_mode", "all");
+    }
+
+    void setStatusMode(String mode) {
+        sp.edit().putString("status_mode", mode).apply();
+    }
+
     /** When shangOS last crashed (comma-separated times); see CrashGuard. */
     String crashes() {
         return sp.getString("crashes", "");

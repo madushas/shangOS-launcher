@@ -48,6 +48,7 @@ final class SettingsPages {
     private final WeatherSettings weather;
     private final ScreenSaverSettings screenSaver;
     private final AppsSettings apps;
+    private final DisplaySettings display;
     private int widgetsRow, aboutRowIndex;
 
     SettingsPages(
@@ -64,7 +65,8 @@ final class SettingsPages {
             HomeScreen homeScreen,
             WeatherSettings weather,
             ScreenSaverSettings screenSaver,
-            AppsSettings apps) {
+            AppsSettings apps,
+            DisplaySettings display) {
         this.activity = activity;
         this.ui = ui;
         this.prefs = prefs;
@@ -79,6 +81,7 @@ final class SettingsPages {
         this.weather = weather;
         this.screenSaver = screenSaver;
         this.apps = apps;
+        this.display = display;
     }
 
     /** The row of About in the System group (where its dialogs return to). */
@@ -129,6 +132,32 @@ final class SettingsPages {
                                         0,
                                         "Clock",
                                         "Shows the time in the top-right corner of every page.")));
+        final int sizeRow = controls.size();
+        controls.add(
+                kit.option(
+                        list,
+                        "Layout size",
+                        display::sizeLabel,
+                        null,
+                        () -> display.sizeMenu(sizeRow),
+                        () -> kit.preview(0, "Layout size", display.sizeAbout())));
+        controls.add(
+                kit.option(
+                        list,
+                        "Status icons",
+                        display::statusLabel,
+                        null,
+                        () -> display.statusMenu(sizeRow + 1),
+                        () -> kit.preview(0, "Status icons", display.statusAbout())));
+        if (Flavor.DEBUG)
+            controls.add(
+                    kit.option(
+                            list,
+                            "Preview size (debug)",
+                            display::previewLabel,
+                            null,
+                            display::previewMenu,
+                            () -> kit.preview(0, "Preview size", display.previewAbout())));
     }
 
     /** Settings, Motion and sound. */
@@ -259,10 +288,10 @@ final class SettingsPages {
                                 kit.preview(
                                         0,
                                         "Home widgets",
-                                        "Choose what Home shows above your apps — Up Next, Weather"
-                                                + " (off until you turn it on), "
+                                        "Choose what Home shows above your apps: Up Next,"
+                                                + " Weather (off until you turn it on), "
                                                 + (InputsWidget.count > 0 ? "Inputs, " : "")
-                                                + "Now Playing and Control — and their order. Left"
+                                                + "Now Playing and Control, and their order. Left"
                                                 + " and Right turn the pages.")));
         final int locationRow = controls.size();
         controls.add(

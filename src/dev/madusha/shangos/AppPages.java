@@ -158,7 +158,7 @@ final class AppPages {
                         ? WidgetBoard.pages(prefs, !InputsWidget.list(activity).isEmpty())
                         : new ArrayList<>();
         FrameLayout heroView = hero.build(home);
-        if (hero.backdrop() != null) content.addView(hero.backdrop(), ui.pos(960, 300, 0, 0));
+        if (hero.backdrop() != null) content.addView(hero.backdrop(), ui.pos(960, 220, 0, 72));
         content.addView(
                 heroView, ui.pos(864, 88, 48, home ? (!layout.isEmpty() ? 96 : 272) : 100));
         this.heroView = heroView;
@@ -178,7 +178,7 @@ final class AppPages {
         rows.setOrientation(LinearLayout.VERTICAL);
         rows.setClipChildren(false);
         rows.setClipToPadding(false);
-        rows.setPadding(ui.px(48), ui.px(home ? 16 : 10), ui.px(48), ui.px(30));
+        rows.setPadding(ui.px(50), ui.px(home ? 16 : 10), ui.px(50), ui.px(30));
         scroll.addView(rows, new ScrollView.LayoutParams(-1, -2));
         content.addView(scroll, ui.pos(960, home ? 150 : 330, 0, home ? 388 : 200));
         fillTiles();
@@ -200,22 +200,23 @@ final class AppPages {
                             Theme.ink(light, 0xBB),
                             "sans-serif"));
         } else {
-            int count = home ? Math.min(AppTile.COLUMNS, list.size()) : list.size();
-            for (int start = 0; start < count; start += AppTile.COLUMNS) {
+            int count = home ? Math.min(Metrics.columns, list.size()) : list.size();
+            for (int start = 0; start < count; start += Metrics.columns) {
                 LinearLayout row = new LinearLayout(activity);
                 row.setOrientation(LinearLayout.HORIZONTAL);
                 row.setClipChildren(false);
                 row.setClipToPadding(false);
                 row.setGravity(Gravity.TOP);
-                for (int i = start; i < Math.min(start + AppTile.COLUMNS, count); i++) {
+                for (int i = start; i < Math.min(start + Metrics.columns, count); i++) {
                     AppTile tile = new AppTile(activity, ui, repo, tileHost, list.get(i), i);
                     LinearLayout.LayoutParams tp =
-                            new LinearLayout.LayoutParams(ui.px(132), ui.px(108));
-                    if (i > start) tp.leftMargin = ui.px(14.4f);
+                            new LinearLayout.LayoutParams(
+                                    ui.px(Metrics.tileW), ui.px(Metrics.tileH + 32));
+                    if (i > start) tp.leftMargin = ui.px(Metrics.gap);
                     row.addView(tile, tp);
                     tiles.add(tile);
                 }
-                rows.addView(row, new LinearLayout.LayoutParams(-1, ui.px(112)));
+                rows.addView(row, new LinearLayout.LayoutParams(-1, ui.px(Metrics.rowH())));
             }
         }
     }
@@ -226,22 +227,23 @@ final class AppPages {
         LinearLayout row = new LinearLayout(activity);
         row.setOrientation(LinearLayout.HORIZONTAL);
         row.setContentDescription("Finding your apps");
-        for (int i = 0; i < AppTile.COLUMNS; i++) {
+        for (int i = 0; i < Metrics.columns; i++) {
             LinearLayout cell = new LinearLayout(activity);
             cell.setOrientation(LinearLayout.VERTICAL);
             cell.addView(
-                    new Shimmer(activity, light, ui.px(16), moving),
-                    new LinearLayout.LayoutParams(ui.px(132), ui.px(76)));
+                    new Shimmer(activity, light, ui.px(Metrics.RADIUS), moving),
+                    new LinearLayout.LayoutParams(ui.px(Metrics.tileW), ui.px(Metrics.tileH)));
             LinearLayout.LayoutParams name = new LinearLayout.LayoutParams(ui.px(70), ui.px(8));
             name.topMargin = ui.px(16);
             name.leftMargin = ui.px(31);
             cell.addView(new Shimmer(activity, light, ui.px(4), moving), name);
             LinearLayout.LayoutParams lp =
-                    new LinearLayout.LayoutParams(ui.px(132), ui.px(108));
-            if (i > 0) lp.leftMargin = ui.px(14.4f);
+                    new LinearLayout.LayoutParams(
+                            ui.px(Metrics.tileW), ui.px(Metrics.tileH + 32));
+            if (i > 0) lp.leftMargin = ui.px(Metrics.gap);
             row.addView(cell, lp);
         }
-        rows.addView(row, new LinearLayout.LayoutParams(-1, ui.px(112)));
+        rows.addView(row, new LinearLayout.LayoutParams(-1, ui.px(Metrics.rowH())));
     }
 
     /**
@@ -338,7 +340,7 @@ final class AppPages {
         float d = Float.MAX_VALUE;
         int[] l = new int[2];
         for (AppTile t : tiles) {
-            if (t.index >= AppTile.COLUMNS) break;
+            if (t.index >= Metrics.columns) break;
             t.getLocationOnScreen(l);
             float e = Math.abs(l[0] + t.getWidth() / 2f - x);
             if (e < d) {
@@ -383,7 +385,7 @@ final class AppPages {
         prefs.setOrderAndHidden(edit.orderCsv(), edit.hidden);
         moved = true;
         boolean sideways = Math.abs(step) == 1;
-        feedback.moved(sideways ? step : 0, sideways ? 0 : step / AppTile.COLUMNS);
+        feedback.moved(sideways ? step : 0, sideways ? 0 : step / Metrics.columns);
         for (AppTile old : tiles) old.movement.stop();
         fillTiles();
         AppTile next = tile(grabbed);

@@ -214,8 +214,8 @@ final class Wallpaper extends FrameLayout {
         setClipChildren(false);
         setClipToPadding(false);
         int margin = ui.px(30);
-        int width = getResources().getDisplayMetrics().widthPixels + margin * 2;
-        int height = getResources().getDisplayMetrics().heightPixels + margin * 2;
+        int width = Screen.width(getContext()) + margin * 2;
+        int height = Screen.height(getContext()) + margin * 2;
         picture = new PictureView(context);
         FrameLayout.LayoutParams full = new FrameLayout.LayoutParams(width, height);
         full.leftMargin = -margin;

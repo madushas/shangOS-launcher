@@ -20,6 +20,8 @@ Layout is in "design units" (1/960 of the screen width) so one design fits any T
 | `Frost`, `Backdrop`, `Shimmer`, `StatusIcons`, `Calm` | The 0.5 polish: blurred-wallpaper glass (pure box blur unit tested), the hero's faded artwork, placeholders, VPN and offline icons, calm mode | Android only; `Ui` hands out glass |
 | `ScreenSaverSettings`, `AppsSettings` | Settings rows with their own logic: whether Ambient is the screen saver, the Apps order and the hidden apps | `Overlays`, `PrivacyScreen`, `AppList`, `AppRepo` |
 | `CrashGuard`, `SystemHome` | Two crashes in five minutes hand Home to the TV's own home (pure window logic unit tested); finding that home | `Prefs`, `HomeScreen` shares `SystemHome` |
+| `Metrics`, `Screen` | Tile sizes and the layout size (one place for the tile count, unit tested); the screen size the layout is built for, and the debug-only preview that lays out at 1080p or 4K and scales it down | `Prefs`, `AppTile`, `AppPages`, `Ui` |
+| `DisplaySettings` | Settings, Appearance rows: layout size, status icons, and the debug preview | `Overlays`, `Prefs`, `Metrics` |
 | `Formats` | The time and date in the TV's language and 12/24-hour setting; shared by the clock, the greeting and the screen saver | Android only |
 | `Feedback`, `Performance`, `DaylightSync` | How moving feels (motion policy, navigation sounds, last d-pad direction); the performance tier; sunrise and sunset switching the page colours | `Prefs`, `SonicFeedback`, `Hardware`, `Daylight` |
 | `AppList` | Pure: which apps Home shows and in what order (saved order, pinned first, hidden), move first/left/right, hide, the recently-opened list. Unit tested | none |

@@ -17,8 +17,6 @@ import android.widget.TextView;
  * needs from the launcher is in {@link Host}.
  */
 final class AppTile extends FrameLayout {
-    /** Tiles per row. Home shows one row; the Apps tab wraps at this many. */
-    static final int COLUMNS = 6;
 
     /** What a tile needs from the page that holds it. */
     interface Host {
@@ -53,7 +51,7 @@ final class AppTile extends FrameLayout {
         /** True while {@code app}'s tile is picked up. */
         boolean grabbed(App app);
 
-        /** While picked up, the d-pad moved it by {@code step} places (a row is COLUMNS). */
+        /** While picked up, the d-pad moved it by {@code step} places (a row is a row of tiles). */
         void nudge(int step);
 
         /** While picked up, OK put it down. */
@@ -95,7 +93,7 @@ final class AppTile extends FrameLayout {
         setSoundEffectsEnabled(false);
         setContentDescription(app.label + ". OK: open. Hold OK: organize app.");
         face = new FrameLayout(context);
-        GradientDrawable faceBg = ui.shape(Tint.NEUTRAL, 16);
+        GradientDrawable faceBg = ui.shape(Tint.NEUTRAL, Metrics.RADIUS);
         faceBg.setStroke(Math.max(1, ui.px(.6f)), 0x1FFFFFFF);
         face.setBackground(faceBg);
         face.setClipToOutline(true);
@@ -106,11 +104,11 @@ final class AppTile extends FrameLayout {
         shine = new Shine(context);
         shine.setAlpha(0);
         face.addView(shine, new FrameLayout.LayoutParams(-1, -1));
-        rim = ui.shape(Color.TRANSPARENT, 16);
+        rim = ui.shape(Color.TRANSPARENT, Metrics.RADIUS);
         rim.setStroke(ui.px(1.2f), 0xF0FFFFFF);
         rim.setAlpha(0);
         face.setForeground(rim);
-        addView(face, ui.pos(132, 76, 0, 0));
+        addView(face, ui.pos(Metrics.tileW, Metrics.tileH, 0, 0));
         label =
                 ui.text(
                         app.label, 13.5f, Theme.ink(host.light(), 0xFF), "sans-serif-medium");
@@ -119,7 +117,7 @@ final class AppTile extends FrameLayout {
         label.setEllipsize(TextUtils.TruncateAt.END);
         label.setAlpha(0);
         ui.shadow(label, 6, host.light());
-        addView(label, ui.pos(160, 22, -14, 88));
+        addView(label, ui.pos(Metrics.tileW + 28, 22, -14, Metrics.tileH + 12));
         movement = new TileMotion(this, ui, host);
         setOnFocusChangeListener((v, focused) -> onFocus(focused));
         setOnClickListener(v -> host.launch(app, face));
@@ -152,7 +150,7 @@ final class AppTile extends FrameLayout {
         tintShadow();
         host.selected(app);
         host.follow(index);
-        if (index < COLUMNS) host.scrollToTop();
+        if (index < Metrics.columns) host.scrollToTop();
         else
             requestRectangleOnScreen(
                     new Rect(
@@ -194,8 +192,8 @@ final class AppTile extends FrameLayout {
                         : key == KeyEvent.KEYCODE_DPAD_RIGHT
                                 ? 1
                                 : key == KeyEvent.KEYCODE_DPAD_UP
-                                        ? -COLUMNS
-                                        : key == KeyEvent.KEYCODE_DPAD_DOWN ? COLUMNS : 0;
+                                        ? -Metrics.columns
+                                        : key == KeyEvent.KEYCODE_DPAD_DOWN ? Metrics.columns : 0;
         if (step == 0) return false;
         if (down && (e.getRepeatCount() == 0 || e.getRepeatCount() % 3 == 0)) host.nudge(step);
         return true;
@@ -208,26 +206,27 @@ final class AppTile extends FrameLayout {
             return false;
         }
         if (e.getAction() != KeyEvent.ACTION_DOWN) return false;
-        if (key == KeyEvent.KEYCODE_DPAD_UP && index < COLUMNS) {
+        if (key == KeyEvent.KEYCODE_DPAD_UP && index < Metrics.columns) {
             int[] l = new int[2];
             getLocationOnScreen(l);
             host.above(l[0] + getWidth() / 2f);
             return true;
         }
         int next = -1;
-        if (key == KeyEvent.KEYCODE_DPAD_LEFT && index % COLUMNS > 0) next = index - 1;
+        if (key == KeyEvent.KEYCODE_DPAD_LEFT && index % Metrics.columns > 0) next = index - 1;
         if (key == KeyEvent.KEYCODE_DPAD_RIGHT
-                && index % COLUMNS < COLUMNS - 1
+                && index % Metrics.columns < Metrics.columns - 1
                 && index + 1 < host.count()) next = index + 1;
-        if (key == KeyEvent.KEYCODE_DPAD_DOWN && index + COLUMNS < host.count())
-            next = index + COLUMNS;
-        if (key == KeyEvent.KEYCODE_DPAD_UP && index >= COLUMNS) next = index - COLUMNS;
+        if (key == KeyEvent.KEYCODE_DPAD_DOWN && index + Metrics.columns < host.count())
+            next = index + Metrics.columns;
+        if (key == KeyEvent.KEYCODE_DPAD_UP && index >= Metrics.columns)
+            next = index - Metrics.columns;
         if (next >= 0) {
             if (e.getRepeatCount() == 0 || e.getRepeatCount() % 2 == 0)
                 host.moveTo(
                         next,
-                        Integer.compare(next % COLUMNS, index % COLUMNS),
-                        Integer.compare(next / COLUMNS, index / COLUMNS));
+                        Integer.compare(next % Metrics.columns, index % Metrics.columns),
+                        Integer.compare(next / Metrics.columns, index / Metrics.columns));
             return true;
         }
         return key == KeyEvent.KEYCODE_DPAD_LEFT

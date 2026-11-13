@@ -223,7 +223,7 @@ final class Hero {
     }
 
     private void showBackdrop(ImageView view, Bitmap poster) {
-        view.setImageBitmap(Backdrop.make(poster, 240, 75));
+        view.setImageBitmap(Backdrop.make(poster, 240, 55));
         fadePoster(view, paleOn.getAsBoolean() ? .3f : .6f);
     }
 

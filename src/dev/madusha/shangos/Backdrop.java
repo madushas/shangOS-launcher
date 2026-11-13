@@ -52,8 +52,8 @@ final class Backdrop {
                         0,
                         0,
                         height,
-                        new int[] {0xFF000000, 0xB3000000, 0x00000000},
-                        new float[] {0, .45f, 1},
+                        new int[] {0x00000000, 0xFF000000, 0xB3000000, 0x00000000},
+                        new float[] {0, .28f, .6f, 1},
                         Shader.TileMode.CLAMP));
         c.drawRect(0, 0, width, height, mask);
         return out;

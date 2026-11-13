@@ -69,6 +69,7 @@ final class Chrome {
                 public void run() {
                     if (!clockRunning) return;
                     clock.setText(Formats.time(context, System.currentTimeMillis()));
+                    status.refresh();
                     handler.postDelayed(this, 15000);
                 }
             };
@@ -86,26 +87,26 @@ final class Chrome {
         for (int i = 0; i < PAGES.length; i++) {
             TextView tab = newTab(i);
             tabs.add(tab);
-            navigation.addView(tab, new LinearLayout.LayoutParams(-2, ui.px(36)));
+            navigation.addView(tab, new LinearLayout.LayoutParams(-2, ui.px(40)));
         }
         bar = new FrameLayout(context);
         bar.setClipChildren(false);
         indicatorShape = ui.shape(0x24FFFFFF, 18);
         indicator = new View(context);
         indicator.setBackground(indicatorShape);
-        bar.addView(indicator, new FrameLayout.LayoutParams(0, ui.px(36), Gravity.CENTER_VERTICAL));
+        bar.addView(indicator, new FrameLayout.LayoutParams(0, ui.px(40), Gravity.CENTER_VERTICAL));
         bar.addView(navigation, new FrameLayout.LayoutParams(-2, -1));
         bar.setPadding(ui.px(4), ui.px(2), ui.px(4), ui.px(2));
         bar.setBackground(ui.glass(bar, false, 22));
-        status = new StatusIcons(context, handler);
+        status = new StatusIcons(context, handler, Prefs.of(context));
         clock = ui.text("", 18, 0xF2FFFFFF, "sans-serif-medium");
         clock.setGravity(Gravity.RIGHT | Gravity.CENTER_VERTICAL);
         clock.setLetterSpacing(.01f);
     }
 
     private TextView newTab(int index) {
-        TextView tab = ui.text(TITLES[index], 14, 0xB3FFFFFF, "sans-serif-medium");
-        tab.setPadding(ui.px(17), ui.px(9), ui.px(17), ui.px(9));
+        TextView tab = ui.text(TITLES[index], 16, 0xB3FFFFFF, "sans-serif-medium");
+        tab.setPadding(ui.px(20), ui.px(10), ui.px(20), ui.px(10));
         tab.setGravity(Gravity.CENTER);
         tab.setFocusable(true);
         tab.setFocusableInTouchMode(true);
@@ -170,16 +171,15 @@ final class Chrome {
 
     /** Puts the tab bar (centred at the top) and the clock (top right) over {@code root}. */
     void addTo(FrameLayout root) {
-        root.addView(bar, ui.pos(-2, 40, 0, 26));
+        root.addView(bar, ui.pos(-2, 48, 0, 24));
         bar.post(
                 () -> {
                     bar.setTranslationX(
-                            (context.getResources().getDisplayMetrics().widthPixels
-                                            - bar.getWidth())
+                            (Screen.width(context) - bar.getWidth())
                                     / 2f);
                     moveIndicator(false);
                 });
-        root.addView(status, ui.pos(70, 36, 712, 28));
+        root.addView(status, ui.pos(130, 36, 652, 28));
         root.addView(clock, ui.pos(130, 36, 782, 28));
     }
 
