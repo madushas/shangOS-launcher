@@ -85,12 +85,26 @@ final class Ui {
         return d;
     }
 
+    /**
+     * The bundled typeface (Inter, OFL: res/font, subset to Latin, 0.6.4), so every TV draws the
+     * same letters. "...medium" families get the Medium weight; any other gets Regular. If the font
+     * cannot be read, the system face is used.
+     */
+    Typeface face(String family) {
+        try {
+            return context.getResources()
+                    .getFont(family.contains("medium") ? R.font.inter_medium : R.font.inter_regular);
+        } catch (RuntimeException e) {
+            return Typeface.create(family, Typeface.NORMAL);
+        }
+    }
+
     TextView text(String value, float size, int color, String family) {
         TextView t = new TextView(context);
         t.setText(value);
         t.setTextColor(color);
         t.setTextSize(TypedValue.COMPLEX_UNIT_PX, px(size));
-        t.setTypeface(Typeface.create(family, Typeface.NORMAL));
+        t.setTypeface(face(family));
         t.setIncludeFontPadding(false);
         return t;
     }

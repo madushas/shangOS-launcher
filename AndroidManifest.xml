@@ -39,5 +39,12 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </service>
+        <!-- Optional, off until the user turns it on: opens the TV's power dialog from shangOS's power button. Cannot read the screen. -->
+        <service android:name=".PowerService" android:label="shangOS power button" android:exported="false" android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data android:name="android.accessibilityservice" android:resource="@xml/power_service" />
+        </service>
     </application>
 </manifest>

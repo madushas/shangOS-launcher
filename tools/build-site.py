@@ -7,6 +7,8 @@ The output is plain HTML and is committed; nothing at runtime depends on this sc
 header, footer and head live in shell(); each page is a function. Keep claims in step with the
 app: privacy page = Settings, Privacy; licenses page = Credits.java and NOTICE.md.
 """
+import base64
+import hashlib
 import html
 import json
 import pathlib
@@ -28,6 +30,7 @@ e = html.escape
 
 ROOT = DOCS.parent
 RELEASED = re.search(r"versionName=(\S+)", (ROOT / "VERSION").read_text()).group(1)  # the latest release (VERSION)
+LUMA_LATEST = "2.5"  # the newest Luma TV release we know of; older measurements say so on the page
 
 
 def _vt(v):
@@ -75,11 +78,12 @@ def bench_section():
             if a and c:
                 notes.append("Start-up time was about the same." if abs(a - c) / max(a, c) < 0.1 else f'Start-up took {a:g}&nbsp;ms against {c:g}&nbsp;ms.')
     stale = [f'{r["name"]} {r["version"]}' for r in res if r["name"] == "shangOS" and r["version"] != RELEASED]
+    stale += [f'Luma TV {r["version"]}' for r in res if r["name"] == "Luma TV" and r["version"] != LUMA_LATEST]
     day = (b.get("generated") or "")[:10]
     dev = b["device"]
     ram = f'{dev["memory_kb"] / 1048576:.1f}&nbsp;GB RAM, ' if dev.get("memory_kb") else ""
     fine = (f'Measured {e(day)} on one TV: {e(dev["description"])} ({ram}{e(dev.get("display", ""))}). '
-            + (f'The current release is {RELEASED}; {e(stale[0])} was measured, so newer versions have not been measured yet. ' if stale else "")
+            + (f'The current release is {RELEASED}; {e(" and ".join(stale))} {"was" if len(stale) == 1 else "were"} measured, so the newer releases have not been measured yet. ' if stale else "")
             + f'One TV on one day is a guide, not a promise; differences under about 10% are noise. Memory is Android&rsquo;s own figure (PSS), in MB of 1,024&nbsp;kB. The method is <a href="{REPO}/blob/main/docs/MEASURING.md" rel="noopener">written down</a>, '
             f'the raw numbers are in <a href="/data/bench.json">bench.json</a>, and <code>tools/bench.sh</code> measures your own TV.')
     return f"""
@@ -161,49 +165,58 @@ def dns_tabs(group):
 
 
 NAV = [("/", "Home"), ("/setup/", "Set up"), ("/guide/", "Guide"), ("/privacy/", "Privacy")]
+APK = f"{REPO}/releases/latest/download/shangos-release.apk"
+VERSION = re.search(r"versionName=(\S+)", (ROOT / "VERSION").read_text()).group(1)
+
+# Runs before first paint: apply a saved theme, mark JS as available. Its hash goes into _headers (the CSP allows it).
+BOOT = ("try{var m=document.querySelector('meta[name=\"color-scheme\"]'),t=localStorage.getItem('shangos-theme');"
+        "if(t==='light'||t==='dark')m.content=t}catch(e){}document.documentElement.classList.add('js')")
 
 
-def shell(path, title, desc, body, *, nav_key=None, og_title=None, jsonld=""):
+
+def _boot_hash():
+    return "sha256-" + base64.b64encode(hashlib.sha256(BOOT.encode()).digest()).decode()
+
+
+def shell(path, title, desc, body, *, nav_key=None, og_title=None, jsonld="", noindex=False):
     canon = SITE + path
-    links = "".join(
-        f'<a href="{h}"{" aria-current=" + chr(34) + "page" + chr(34) if h == nav_key else ""}>{t}</a>' for h, t in NAV)
-    links += f'<a href="{REPO}" rel="noopener">GitHub<span class="vh"> (opens in a new tab)</span></a>'
+    items = "".join(
+        f'<li><a href="{h}"{" aria-current=" + chr(34) + "page" + chr(34) if h == nav_key else ""}>{t}</a></li>'
+        for h, t in NAV)
+    items += f'<li><a href="{REPO}" rel="noopener">GitHub<span class="vh"> (opens in a new tab)</span></a></li>'
+    robots = '<meta name="robots" content="noindex">\n' if noindex else ""
     return f"""<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>{e(title)}</title>
 <meta name="description" content="{e(desc)}">
-<link rel="canonical" href="{canon}">
+{robots}<link rel="canonical" href="{canon}">
 <meta name="color-scheme" content="light dark">
-<meta name="theme-color" content="#f9faef" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#12140e" media="(prefers-color-scheme: dark)">
-<meta property="og:type" content="website">
-<meta property="og:site_name" content="shangOS">
-<meta property="og:title" content="{e(og_title or title)}">
-<meta property="og:description" content="{e(desc)}">
-<meta property="og:url" content="{canon}">
-<meta property="og:image" content="{SITE}/assets/og.jpg">
-<meta property="og:image:type" content="image/jpeg">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
-<meta name="twitter:card" content="summary_large_image">
-<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
-<script>try{{var t=localStorage.getItem("shangos-theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}}catch(e){{}}</script>
-<link rel="stylesheet" href="/assets/site.css">
-<script src="/assets/site.js" defer></script>
+<script>{BOOT}</script>
+<meta name="theme-color" content="#F6F8FB" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0B0F14" media="(prefers-color-scheme: dark)">
+<meta property="og:type" content="website"><meta property="og:site_name" content="shangOS">
+<meta property="og:title" content="{e(og_title or title)}"><meta property="og:description" content="{e(desc)}"><meta property="og:url" content="{canon}">
+<meta property="og:image" content="{SITE}/assets/og.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600&amp;display=swap">
+<link rel="stylesheet" href="/assets/astra.css">
 {jsonld}</head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
-<header class="site-header">
-  <div class="wrap">
-    <a class="brand" href="/"><img src="/assets/logo.svg" alt="" width="32" height="32"><span>shangOS</span></a>
-    <nav class="site-nav" id="site-nav" aria-label="Main">{links}</nav>
-    <div class="header-tools">
-      <button class="icon-btn theme-toggle" type="button" data-theme-toggle aria-pressed="false" aria-label="Switch theme">{icon("sun", "i-sun")}{icon("moon", "i-moon")}</button>
-      <button class="icon-btn nav-toggle" type="button" data-nav-toggle aria-expanded="false" aria-controls="site-nav" aria-label="Open menu">{icon("menu")}</button>
+<header class="site-header" id="hdr">
+  <div class="wrap header-inner">
+    <a class="brand" href="/" aria-label="shangOS, home"><i aria-hidden="true"></i>shangOS</a>
+    <nav class="site-nav" aria-label="Main">
+      <button class="menu-button" type="button" popovertarget="site-menu" aria-controls="site-menu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg><span>Menu</span></button>
+      <ul id="site-menu" class="site-menu" popover>{items}</ul>
+    </nav>
+    <div class="header-actions">
+      <button class="icon-btn" id="theme" type="button" aria-label="Switch colour theme"><svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg><svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button>
+      <a class="btn btn--fill" href="{APK}" download>Download APK</a>
     </div>
   </div>
 </header>
@@ -212,18 +225,16 @@ def shell(path, title, desc, body, *, nav_key=None, og_title=None, jsonld=""):
 </main>
 <footer class="site-footer">
   <div class="wrap">
-    <div class="footer-grid">
-      <div>
-        <a class="brand" href="/"><img src="/assets/logo.svg" alt="" width="32" height="32"><span>shangOS</span></a>
-        <p class="footer-note">A home screen for Android TV and Google TV. A hobby project, open source under the MIT licence. No accounts, no ads, no trackers, and this website sets no cookies and loads nothing from other sites.</p>
-      </div>
-      <div><h2>Use it</h2><ul><li><a href="/setup/">Set up on your TV</a></li><li><a href="/guide/">User guide</a></li><li><a href="{LATEST}" rel="noopener">Latest release</a></li></ul></div>
-      <div><h2>Trust it</h2><ul><li><a href="/privacy/">Privacy</a></li><li><a href="/licenses/">Licences and credits</a></li><li><a href="/setup/#verify">Verify a download</a></li></ul></div>
-      <div><h2>Source</h2><ul><li><a href="{REPO}" rel="noopener">GitHub</a></li><li><a href="{REPO}/issues" rel="noopener">Report a problem</a></li><li><a href="{REPO}/blob/main/CHANGELOG.md" rel="noopener">Changelog</a></li></ul></div>
+    <div class="footer-top">
+      <div><a class="brand" href="/"><i aria-hidden="true"></i>shangOS</a><p class="small footer-note">A free home screen for Android TV and Google TV. Open source, no accounts, no ads, no trackers. This website sets no cookies.</p></div>
+      <nav aria-label="Use it"><h2>Use it</h2><ul><li><a href="/setup/">Set up on your TV</a></li><li><a href="/guide/">User guide</a></li><li><a href="{REPO}/releases/latest" rel="noopener">Latest release</a></li></ul></nav>
+      <nav aria-label="Trust it"><h2>Trust it</h2><ul><li><a href="/privacy/">Privacy</a></li><li><a href="/licenses/">Licences and credits</a></li><li><a href="/setup/#verify">Verify a download</a></li></ul></nav>
+      <nav aria-label="Source"><h2>Source</h2><ul><li><a href="{REPO}" rel="noopener">GitHub</a></li><li><a href="{REPO}/issues" rel="noopener">Report a problem</a></li><li><a href="{REPO}/blob/main/CHANGELOG.md" rel="noopener">Changelog</a></li></ul></nav>
     </div>
-    <div class="footer-bottom"><span>&copy; shangOS contributors. MIT licence.</span><span>Not affiliated with Google, Sony or any TV maker.</span></div>
+    <div class="footer-bottom small"><span>&copy; shangOS contributors. MIT licence. Not affiliated with Google, Sony or any TV maker.</span><span>This site loads its typeface from Google Fonts. The app does not.</span></div>
   </div>
 </footer>
+<script src="/assets/astra.js" defer></script>
 </body>
 </html>
 """
@@ -262,130 +273,17 @@ def table(head, rows, stack=True, caption=""):
 
 # ------------------------------------------------------------------------------------------ pages
 def page_home():
-    looks = [("daybreak_day", "Daybreak", "follows the sun"), ("aurora", "Aurora", "drawn in code"), ("ember", "Ember", "drawn in code"),
-             ("tide", "Tide", "drawn in code"), ("orchid", "Orchid", "drawn in code"), ("glacier", "Glacier", "for bright rooms"),
-             ("milkyway", "Milky Way", "photo, CC0"), ("sea", "Calm Sea", "photo, CC0")]
-    look_html = "".join(
-        f'<li><figure class="look"><img src="/assets/looks/{f}.webp" width="560" height="315" loading="lazy" decoding="async" '
-        f'alt="The {n} wallpaper: a full-screen backdrop for the Home page"><figcaption>{n}<span>{s}</span></figcaption></figure></li>'
-        for f, n, s in looks)
-    faq = [
-        ("Why do I need a computer?",
-         "<p>Android TV and Google TV have no setting for choosing a different home app, so it is set once with <code>adb</code>, Android&rsquo;s standard developer tool, over your home network. The setup wizard does it for you and takes about five minutes.</p>"),
-        ("Is it safe?",
-         f'<p>You can check each part yourself. The source is public. Each release is signed, ships with a <code>SHA256SUMS</code> file, and the setup wizard checks it before installing. The app has no accounts and no analytics, and the Offline build does not even ask Android for network access. Read the <a href="/privacy/">privacy page</a> for exactly what is sent, and when.</p>'),
-        ("Does it block ads in other apps?",
-         '<p>shangOS itself shows none, but it does not change other apps. If you want that, the setup wizard can switch on an optional ad and tracker filter for the whole TV (Android&rsquo;s Private DNS). It is off by default, it can be undone with one command, and it has limits: <a href="/setup/#block-ads">read them first</a>.</p>'),
-        ("Will it work on my TV?",
-         '<p>It needs an Android TV or Google TV on Android 12 or newer, and the wizard checks that for you. It was built and measured on one small stick (an onn. Full HD Streaming Device) and has not been tested on every brand, so please <a href="' + REPO + '/issues" rel="noopener">tell me what you find</a>. Not for phones, tablets or Fire TV.</p>'),
-        ("What does it change on my TV?",
-         '<p>It installs one app and makes it the home screen. The TV&rsquo;s own home and setup apps stay switched on, so the TV always has a home to start with; if the TV keeps opening its own home, open shangOS from the app row. Nothing else is touched: no root, no firmware. <a href="/setup/#what-changes">Full list</a>.</p>'),
-        ("How do I go back?",
-         '<p>Run the wizard again and choose <em>Remove shangOS</em>. It gives Home back to your TV&rsquo;s launcher first, then removes the app. <a href="/setup/#undo">Manual steps</a> are on the setup page.</p>'),
-        ("How do updates work?",
-         '<p>shangOS does not check for or download updates itself. Run the wizard again, or install the new APK over the old one with <code>adb install -r</code>. Releases are signed with the same key, so your order, name and wallpaper stay.</p>'),
-        ("Does it work on a phone or tablet?",
-         "<p>No. It is built for the remote and a TV screen, and needs Android 12 or newer on an Android TV or Google TV device.</p>"),
-        ("Who makes it?",
-         f'<p>It is a hobby project, maintained in spare time and published under the MIT licence. It began as a fork of <a href="https://github.com/0xProbabillity/luma-tv" rel="noopener">Luma TV</a> (see <a href="/licenses/">credits</a>). Bugs and ideas go on <a href="{REPO}/issues" rel="noopener">GitHub</a>.</p>'),
-    ]
-    faq_html = "".join(f'<details><summary>{q}</summary><div class="faq__a">{a}</div></details>' for q, a in faq)
-    ld = ('<script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"shangOS",'
-          '"applicationCategory":"UtilitiesApplication","operatingSystem":"Android TV 12+, Google TV","license":"https://opensource.org/licenses/MIT",'
-          f'"url":"{SITE}/","offers":{{"@type":"Offer","price":"0","priceCurrency":"USD"}}}}</script>\n')
-    bench = bench_section()
-    body = f"""
-<section class="hero">
-  <div class="wrap hero__grid">
-    <div class="hero__copy">
-      <span class="kicker">For Google TV and Android TV</span>
-      <h1>A TV home screen <em>without the ads and trackers.</em></h1>
-      <p class="lead">shangOS shows your apps and nothing else: no promoted rows, no sign-in, no tracking. It is free, open source and reversible, and you set it up from your computer in about five minutes.</p>
-      <div class="btn-row"><a class="btn btn--primary" href="/setup/">Set it up</a><a class="btn btn--ghost" href="/privacy/">See what it sends</a></div>
-      <ul class="chips" aria-label="At a glance"><li class="chip">Android 12 or newer</li><li class="chip">About 2.4 MB</li><li class="chip">MIT licence</li><li class="chip">Fully reversible</li></ul>
-    </div>
-    <figure class="tv">
-      <div class="tv__frame"><img src="/assets/home-720.webp" srcset="/assets/home-720.webp 720w, /assets/home.webp 1280w" sizes="(min-width: 62rem) 40rem, 92vw" width="1280" height="720" fetchpriority="high" alt="The shangOS Home page on a TV: a large greeting with the weather, an Up Next row, a weather card, and a row of app tiles for Jellyfin, Proton VPN, Stremio, VLC, Settings and Pluto TV."></div>
-      <div class="tv__stand" aria-hidden="true"></div>
-      <figcaption>Home with the Daybreak wallpaper, from a release build.</figcaption>
-    </figure>
-  </div>
-</section>
-
-<section class="section" aria-labelledby="what-h">
-  <div class="wrap">
-    <div class="section__head"><span class="kicker">Why it exists</span><h2 id="what-h">A home screen that just shows your apps</h2><p>The first thing you see every day should not be an advert or a data collector. Everything here is reachable with the d-pad and OK: no phone, account or keyboard.</p></div>
-    <div class="cards">
-      <article class="card"><div class="ico">{icon("shield")}</div><h3>No ads, no promoted rows</h3><p>Home shows your own apps and what you were in the middle of watching. Nothing on it is sponsored or sold.</p></article>
-      <article class="card"><div class="ico">{icon("lock")}</div><h3>Nothing leaves your TV</h3><p>No accounts, analytics or crash reports. Weather and poster pictures can use the internet, both only if you allow them, and the Offline build removes even that permission.</p></article>
-      <article class="card"><div class="ico">{icon("gauge")}</div><h3>Light on cheap sticks</h3><p>Built and tested on a stick with 1.4&nbsp;GB of RAM. It picks a performance level for your TV, shows why, and lets you change it.</p></article>
-      <article class="card"><div class="ico">{icon("grid")}</div><h3>Yours to arrange</h3><p>Choose the order of your apps and which widgets show: Up Next, Now Playing, Control, Inputs and Weather. Hide what you never use.</p></article>
-      <article class="card"><div class="ico">{icon("image")}</div><h3>A calm look</h3><p>Eight wallpapers, a clock-over-wallpaper screen saver, and your own photo{nx("0.4.5")}. Tiles take their colour from each app&rsquo;s own icon.</p></article>
-      <article class="card"><div class="ico">{icon("undo")}</div><h3>Easy to undo</h3><p>Home goes back to your TV&rsquo;s launcher before shangOS is removed. The wizard remembers what it changed so it can reverse it.</p></article>
-    </div>
-  </div>
-</section>
-
-<section class="section section--sunk" aria-labelledby="install-h">
-  <div class="wrap">
-    <div class="section__head"><span class="kicker">One line</span><h2 id="install-h">Install it from your computer</h2>
-    <p>Run this in a terminal on a computer on the same Wi-Fi as the TV. A guided wizard finds the TV, shows every command before it runs, and installs the signed release.</p></div>
-    <div class="quick">{install_tabs("home")}</div>
-    <p class="fine" style="margin-top:var(--s-4)">First time? <a href="/setup/">The setup page</a> shows how to turn on debugging on the TV. You can <a href="/setup/#read-first">read the script before running it</a>.</p>
-  </div>
-</section>
-
-<section class="section" aria-labelledby="dns-h">
-  <div class="wrap split">
-    <div class="stack"><span class="kicker">Optional</span><h2 id="dns-h">Block ads and trackers in your other apps too</h2>
-    <p class="lead">shangOS itself shows no ads, but your other apps still can. One setting makes the whole TV refuse known ad and tracker domains.</p>
-    <p>It uses Android&rsquo;s built-in <strong>Private DNS</strong>, set to AdGuard DNS or to a server of your own. It is off unless you ask for it, and one command turns it off again.</p>
-    <p class="fine">Be aware: the DNS provider you pick sees the names your TV looks up. Some apps may show fewer ads, load differently, or refuse to start. Apps that use their own DNS skip the filter. <a href="/setup/#block-ads">The details and the limits</a>.</p></div>
-    <div class="stack">{dns_tabs("home")}</div>
-  </div>
-</section>
-
-<section class="section section--sunk" aria-labelledby="looks-h">
-  <div class="wrap">
-    <div class="section__head"><span class="kicker">Wallpapers</span><h2 id="looks-h">Eight looks, plus your own</h2><p>Pick one in Settings with a live preview. Daybreak follows the time of day. Milky Way and Calm Sea are photographs from Poly Haven (CC0); the other six were generated for this project.</p></div>
-    <ul class="looks looks--scroll">{look_html}</ul>
-  </div>
-</section>
-
-<section class="section" aria-labelledby="priv-h">
-  <div class="wrap split">
-    <div class="stack"><span class="kicker">Privacy</span><h2 id="priv-h">Small list of what leaves the TV</h2><p class="lead">There are two things, both under your control. Everything else stays on the device.</p><p><a class="btn btn--ghost" href="/privacy/">Read the privacy page</a></p></div>
-    <div class="stack">
-      <h3>Can reach the internet</h3>
-      <ul class="list-clean"><li><span><strong>Weather</strong>, only if you switch it on: a coarse location of the city you chose (about 1&nbsp;km) goes to Open-Meteo.</span></li><li><span><strong>Poster pictures</strong> for Up Next: fetched from the address the streaming app publishes, on Wi-Fi or Ethernet by default.</span></li></ul>
-      <h3>Never</h3>
-      <ul class="list-clean list-clean--no"><li><span>Accounts, identifiers, analytics, crash reports or advertising.</span></li><li><span>Backups to the cloud. Uninstalling removes every stored byte.</span></li><li><span>Network access at all, in the Offline build.</span></li></ul>
-    </div>
-  </div>
-</section>
-
-{bench}
-
-<section class="section" aria-labelledby="dl-h">
-  <div class="wrap split">
-    <div class="stack"><span class="kicker">Download</span><h2 id="dl-h">Prefer to do it by hand?</h2><p class="lead">Every release has two APKs (Standard and Offline) and a <code>SHA256SUMS</code> file. The setup page lists the few <code>adb</code> commands and how to check the signature.</p>
-    <div class="btn-row"><a class="btn btn--primary" href="{LATEST}" rel="noopener">Latest release on GitHub</a><a class="btn btn--ghost" href="/setup/#manual">Manual steps</a></div></div>
-    <div class="stack"><figure class="banner"><img src="/assets/banner.svg" alt="The shangOS banner: the word shang next to a lime play button that reads os" width="760" height="428" loading="lazy" decoding="async"><figcaption>The banner your TV shows for shangOS in its app list.</figcaption></figure>{term([("c", "# check the download, then the signer"), ("p", "sha256sum -c SHA256SUMS --ignore-missing"), ("p", "apksigner verify --print-certs shangos-*-release.apk")], "Verify")}
-    <p class="fine">The certificate fingerprint must match the release notes and the TV&rsquo;s own Settings, Privacy, This build screen.</p></div>
-  </div>
-</section>
-
-<section class="section section--sunk" aria-labelledby="faq-h">
-  <div class="wrap" style="max-width:52rem">
-    <div class="section__head"><span class="kicker">Questions</span><h2 id="faq-h">Good to know first</h2></div>
-    <div class="faq">{faq_html}</div>
-  </div>
-</section>
-"""
-    return shell("/", "shangOS: a calmer home screen for Android TV and Google TV",
-                 "shangOS is an open-source home screen for Android TV and Google TV. Three quiet pages, widgets you choose, no accounts, no ads, no tracking. Reversible, and set up from your computer in about five minutes.",
-                 body, nav_key="/", og_title="shangOS: a calmer home screen for your TV", jsonld=ld)
-
+    body = (ROOT / "tools" / "site" / "home.html").read_text(encoding="utf-8")
+    body = re.sub(r'(data-rel="version">)[^<]*', lambda m: m.group(1) + VERSION, body)
+    body += "\n" + bench_section()
+    preload = ('<link rel="preload" as="image" href="/assets/home-720.webp" type="image/webp" '
+               'imagesrcset="/assets/home-720.webp 720w, /assets/home.webp 1280w" imagesizes="(min-width:1000px) 58vw, 100vw">\n')
+    jsonld = ('<script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"shangOS",'
+              '"applicationCategory":"MultimediaApplication","operatingSystem":"Android TV, Google TV (Android 12+)",'
+              f'"offers":{{"@type":"Offer","price":"0","priceCurrency":"USD"}},"license":"https://opensource.org/license/mit","url":"{SITE}/"}}</script>\n')
+    return shell("/", "shangOS: a home screen for Google TV that isn’t a storefront",
+                 "shangOS is a free, open-source home screen for Android TV and Google TV. Your apps, widgets and wallpaper first. No ads, no recommendations, no trackers.",
+                 body, nav_key="/", jsonld=preload + jsonld)
 
 def brand_table():
     return table(["Your device", "Turn on Developer options", "Then open"], [
@@ -610,6 +508,7 @@ def page_privacy():
         ["<code>PACKAGE_USAGE_STATS</code>", "Orders recent apps by when you last opened them.", "Optional"],
         ["<code>BIND_NOTIFICATION_LISTENER</code>", "Lets Now Playing see media sessions. It reads media playback only, not your notifications.", "Optional"],
         ["<code>REQUEST_DELETE_PACKAGES</code>", "Lets shangOS ask Android to show its uninstall confirmation. Nothing is removed unless you confirm there.", "When you choose Uninstall" + nx("0.4.5")],
+        ["Accessibility service: shangOS power button", "Optional and off until you turn it on in Accessibility. Its only job is to open the TV&rsquo;s own power dialog when you press the power button. It is declared with no access to the screen&rsquo;s content and ignores every event.", "Only if you turn it on" + nx("0.6.4")],
         ["<code>ACCESS_NETWORK_STATE</code>", "Tells whether you are on Wi-Fi or Ethernet before fetching posters.", "System"],
         ["<code>INTERNET</code>", "Weather and poster pictures. Not present in the Offline build.", "Standard build only"],
     ])))
@@ -635,6 +534,7 @@ def page_licenses():
         ["Poly Haven photographs", "Poly Haven and its artists", "CC0 1.0", "The Milky Way and Calm Sea wallpapers."],
         ["Open-Meteo", "Open-Meteo.com", "CC BY 4.0", "Weather forecasts, only if you turn Weather on."],
         ["IANA time zone database", "IANA", "Public domain", "Linking a time zone to a city for weather and sunrise when no city is chosen."],
+        ["Inter", "The Inter Project Authors", "OFL-1.1", "The typeface of the launcher, bundled (Regular and Medium, subset to Latin). From 0.6.4."],
         ["GeoNames", "GeoNames contributors, via the all-the-cities package (MIT)", "CC BY 4.0", "The built-in list of about 23,000 cities for Settings, City. Nothing is looked up online."],
         ["Roboto", "Google", "Apache 2.0", "Letters in the TV banner image."],
     ]) + """
@@ -650,16 +550,13 @@ def page_licenses():
 
 
 def page_404():
-    body = """
-<div class="wrap lost"><div>
-  <img class="lost__logo" src="/assets/logo.svg" alt="" width="72" height="72">
+    body = """<div class="wrap lost"><div>
   <p class="code" aria-hidden="true">404</p>
-  <h1 style="font-size:clamp(1.75rem,3vw + 0.5rem,2.5rem)">That page is not here</h1>
+  <h1 class="h2">That page is not here</h1>
   <p class="lead">The link may be old or mistyped. These are the places most people are looking for.</p>
-  <div class="btn-row" style="justify-content:center"><a class="btn btn--primary" href="/setup/">Set up your TV</a><a class="btn btn--ghost" href="/">Home</a><a class="btn btn--ghost" href="/guide/">User guide</a></div>
+  <div class="acts"><a class="btn btn--fill" href="/setup/">Set up your TV</a><a class="btn btn--line" href="/">Home</a><a class="btn btn--line" href="/guide/">User guide</a></div>
 </div></div>"""
-    return shell("/404.html", "Page not found | shangOS", "That page is not here. Try the setup guide or the home page.", body)
-
+    return shell("/404.html", "Page not found | shangOS", "This page is not here. Try the setup guide or the home page.", body, noindex=True)
 
 def outputs():
     pages = {"index.html": page_home(), "setup/index.html": page_setup(), "guide/index.html": page_guide(),
@@ -668,6 +565,14 @@ def outputs():
                             + "".join(f"  <url><loc>{SITE}{u}</loc></url>\n" for u in ["/", "/setup/", "/guide/", "/privacy/", "/licenses/"])
                             + "</urlset>\n")
     pages["robots.txt"] = f"User-agent: *\nAllow: /\nSitemap: {SITE}/sitemap.xml\n"
+    pages["_headers"] = f"""/*
+  Content-Security-Policy: default-src 'self'; script-src 'self' '{_boot_hash()}'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), interest-cohort=()
+/assets/*
+  Cache-Control: public, max-age=86400
+"""
     return pages
 
 

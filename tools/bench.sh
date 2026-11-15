@@ -32,11 +32,21 @@ disabled() { sh pm list packages -d "$1" | grep -qx "package:$1"; }
 home_activity_of() { sh cmd package resolve-activity --brief -a android.intent.action.MAIN -c android.intent.category.HOME "$1" | tail -1; }
 ORIGINAL_HOME="$(sh cmd package resolve-activity --brief -a android.intent.action.MAIN -c android.intent.category.HOME | tail -1)"
 WAS_DISABLED=""
-for p in $STOCK_PKGS; do installed "$p" && disabled "$p" && WAS_DISABLED="$WAS_DISABLED $p"; done
+WAS_ENABLED=""
+for p in $STOCK_PKGS; do
+    if installed "$p"; then
+        if disabled "$p"; then
+            WAS_DISABLED="$WAS_DISABLED $p"
+        else
+            WAS_ENABLED="$WAS_ENABLED $p"
+        fi
+    fi
+done
 WORK="$(mktemp -d)"
 # shellcheck disable=SC2329 # runs from the EXIT trap
 restore() {
     for p in $WAS_DISABLED; do sh pm disable-user --user 0 "$p" >/dev/null 2>&1; done
+    for p in $WAS_ENABLED; do sh pm enable --user 0 "$p" >/dev/null 2>&1; done
     [[ "$ORIGINAL_HOME" =~ ^[A-Za-z0-9_.]+/[A-Za-z0-9_.$]+$ ]] && sh cmd package set-home-activity --user 0 "$ORIGINAL_HOME" >/dev/null 2>&1
     rm -rf "$WORK"
     echo "The TV's Home is back to $ORIGINAL_HOME."
@@ -44,29 +54,51 @@ restore() {
 trap restore EXIT
 trap 'echo; echo "Stopped."; exit 130' INT TERM
 
+prepare_launcher() {
+    local comp="$1"
+    local pkg="${comp%%/*}"
+    if [[ " $STOCK_PKGS " == *" $pkg "* ]]; then
+        disabled "$pkg" && sh pm enable --user 0 "$pkg" >/dev/null 2>&1
+    else
+        # Disable stock launchers so this third-party launcher can resolve as default Home
+        for p in $STOCK_PKGS; do
+            installed "$p" && ! disabled "$p" && sh pm disable-user --user 0 "$p" >/dev/null 2>&1
+        done
+    fi
+}
+
 REPORTS=()
 run_one() { # run_one LABEL PACKAGE/ACTIVITY
     local label="$1" comp="$2"
     echo "== Measuring $label ($comp): about 5 minutes, do not touch the remote"
+    prepare_launcher "$comp"
     if OUTDIR="$WORK" SET_HOME=1 COMPILE=speed tools/baseline.sh ${DEV:+-s "$DEV"} "$comp" "$label"; then REPORTS+=("$WORK/measure-$label.txt"); else echo "   $label failed; it is left out"; fi
 }
 case ",$ONLY," in *,shangos,*)
     if installed dev.madusha.shangos; then run_one shangos dev.madusha.shangos/.MainActivity; else echo "shangOS is not installed on this TV: skipped"; fi ;;
 esac
 case ",$ONLY," in *,luma,*)
-    if installed dev.luma.tv; then run_one luma dev.luma.tv/.MainActivity; else echo "Luma TV is not installed (baseline/upstream-luma-tv-2.4-8ce6838.apk): skipped"; fi ;;
+    if installed dev.luma.tv; then run_one luma dev.luma.tv/.MainActivity; else echo "Luma TV is not installed (install the latest from https://github.com/0xProbabillity/luma-tv/releases): skipped"; fi ;;
 esac
 case ",$ONLY," in *,stock,*)
-    found=""
+    found="" foundpkg=""
     for p in $STOCK_PKGS; do
         installed "$p" || continue
-        act="$(home_activity_of "$p")"
-        [[ "$act" == "$p/"* ]] || continue
         disabled "$p" && sh pm enable --user 0 "$p" >/dev/null 2>&1
-        found="$act"
-        break
+        act="$(home_activity_of "$p")"
+        if [[ "$act" == "$p/"* ]]; then
+            found="$act"; foundpkg="$p"
+            break
+        fi
+        [[ " $WAS_DISABLED " == *" $p "* ]] && sh pm disable-user --user 0 "$p" >/dev/null 2>&1
     done
-    if [ -n "$found" ]; then run_one stock "$found"; else echo "No stock launcher found: skipped"; fi ;;
+    # The label names the launcher (googletv, androidtv or tvhome), so the site can say which one was measured.
+    case "$foundpkg" in
+        com.google.android.tvlauncher|com.google.android.apps.tv.launcherx) lbl=googletv ;;
+        com.google.android.leanbacklauncher) lbl=androidtv ;;
+        *) lbl=tvhome ;;
+    esac
+    if [ -n "$found" ]; then run_one "$lbl" "$found"; else echo "No stock launcher found: skipped"; fi ;;
 esac
 if [ "${#REPORTS[@]}" -eq 0 ]; then echo "Nothing was measured."; exit 1; fi
 python3 tools/bench-json.py "${REPORTS[@]}" --out "$OUT" && python3 tools/bench-json.py --check "$OUT"

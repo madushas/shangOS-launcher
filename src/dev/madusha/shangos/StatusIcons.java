@@ -11,6 +11,7 @@ import android.net.Network;
 import android.net.NetworkCapabilities;
 import android.os.Handler;
 import android.view.View;
+import android.view.View.MeasureSpec;
 
 /**
  * The icons beside the clock: the network (Wi-Fi with its strength, or Ethernet; amber and crossed
@@ -95,6 +96,7 @@ final class StatusIcons extends View {
                                 || audio.getStreamVolume(AudioManager.STREAM_MUSIC) == 0);
         if (now != muted) {
             muted = now;
+            requestLayout();
             invalidate();
         }
     }
@@ -109,7 +111,24 @@ final class StatusIcons extends View {
         int rssi = caps == null ? unknown : caps.getSignalStrength();
         bars = rssi == unknown ? 4 : Metrics.bars(rssi);
         setContentDescription(offline ? "No network" : vpn ? "VPN on" : "");
+        requestLayout();
         invalidate();
+    }
+
+    /** How many icons show now: the sound, the VPN, and one for the network when it matters. */
+    int count() {
+        boolean all = !prefs.statusMode().equals("alerts");
+        int n = (muted ? 1 : 0) + (vpn ? 1 : 0);
+        if (known && (offline || (all && (wifi || ethernet)))) n++;
+        return n;
+    }
+
+    /** As wide as the icons that show, so the capsule beside it fits them and no more. */
+    @Override
+    protected void onMeasure(int widthSpec, int heightSpec) {
+        int h = MeasureSpec.getSize(heightSpec);
+        int w = Math.round(count() * h * 28f / 36f);
+        setMeasuredDimension(w, h);
     }
 
     @Override

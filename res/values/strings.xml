@@ -2,4 +2,5 @@
     <!-- Replaced at build time by SHANGOS_GREETING or .local/greeting.txt (build.sh). -->
     <string name="greeting">Hello</string>
     <string name="app_name">shangOS</string>
+    <string name="power_service_description">Lets the shangOS power button open the TV\'s own power dialog. It does not read the screen and is not needed for anything else.</string>
 </resources>

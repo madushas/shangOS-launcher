@@ -41,6 +41,7 @@ public final class MainActivity extends Activity {
     private FrameLayout root, content;
     private Wallpaper wallpaper;
     private Chrome chrome;
+    private PowerMenu powerMenu;
     private Calm calm;
 
     // The pages and the screens opened from Settings.
@@ -88,6 +89,7 @@ public final class MainActivity extends Activity {
         WatchNext watchNext = new WatchNext(this, WidgetBoard.IO);
         hero = new Hero(this, ui, prefs, handler, watchNext, () -> feedback.motion(), () -> light);
         chrome = new Chrome(this, ui, handler, chromeHost);
+        powerMenu = new PowerMenu(this, overlays);
         calm =
                 new Calm(
                         handler,
@@ -683,6 +685,11 @@ public final class MainActivity extends Activity {
 
                 public View firstWidget() {
                     return pages.firstWidget();
+                }
+
+                public void power() {
+                    feedback.click();
+                    powerMenu.open();
                 }
 
                 public void focusFirst() {

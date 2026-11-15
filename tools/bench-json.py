@@ -12,7 +12,8 @@ Schema 1:
 """
 import argparse, datetime, json, re, sys
 
-NAMES = {"shangos": "shangOS", "luma": "Luma TV", "upstream": "Luma TV", "stock": "The TV's own launcher"}
+NAMES = {"shangos": "shangOS", "luma": "Luma TV", "upstream": "Luma TV", "stock": "The TV's own home",
+         "googletv": "Google TV Home", "androidtv": "Android TV Home", "tvhome": "The TV's own home"}
 # The numbers the website shows (name -> (metric, divisor, decimals)); everything else stays in "metrics" for anyone who wants it.
 HIGHLIGHTS = {
     "memory_idle_mb": ("mem_pss_kb", 1024, 1),

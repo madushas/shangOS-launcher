@@ -598,6 +598,6 @@ case "$ACTION" in
         do_wallpaper "${2:-}"
         ;;
     *)
-        die "unknown command '$ACTION'. Use wizard, build, install, home, widgets, restore, status, cleanup, ambient or wallpaper."
+        die "unknown command '$ACTION'. Use wizard, build, install, home, widgets, restore, status, cleanup, ambient, wallpaper."
         ;;
 esac

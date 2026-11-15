@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Opens the TV's own power dialog when shangOS's power button is pressed. It never reads the screen (no window content) and handles no key or touch events. -->
+<accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
+    android:accessibilityFeedbackType="feedbackGeneric"
+    android:accessibilityFlags="flagDefault"
+    android:canRetrieveWindowContent="false"
+    android:canPerformGestures="false"
+    android:description="@string/power_service_description"
+    android:summary="@string/power_service_description" />

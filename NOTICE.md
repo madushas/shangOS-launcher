@@ -7,6 +7,10 @@ notice is kept in `LICENSE`, as the licence requires. The upstream remote is kep
 
 Changes made here are listed in `CHANGELOG.md`.
 
+Typeface: Inter (Regular and Medium, subset to Latin with fontTools; the static instances were made from the variable font), Copyright
+2020 The Inter Project Authors, licensed under the SIL Open Font License 1.1 (`res/raw/license_ofl.txt`). Not modified except by
+subsetting and instancing.
+
 Upstream was last checked against Luma 2.5 (`1c1bc52`). Taken from it: the keyboard window setting. The weather city picker is this
 project's own, built on the same idea but with a list inside the app (see Data below). Not taken: Luma 2.5's automatic city from the TV's
 internet address (GeoJS, ipwho.is), its online city search (Open-Meteo geocoding), and the promo-demo restyle (a film tool).

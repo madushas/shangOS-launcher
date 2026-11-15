@@ -1,0 +1,151 @@
+
+<section class="hero" aria-labelledby="h1">
+  <div class="wrap hero__grid">
+    <div class="hero__copy">
+      <h1 class="h1 hero__h1" id="h1"><span><i>A home screen</i></span><span><i>that isn’t</i></span><span><i>a storefront.</i></span></h1>
+      <p class="lead">shangOS is a free, open-source launcher for Google TV. Your apps, your widgets and your wallpaper on the first screen, and nothing that someone paid to put there.</p>
+
+      <div class="term term--hero" id="quick" data-tabs>
+        <div class="term__bar">
+          <div class="os" role="tablist" aria-label="Your computer">
+            <button type="button" role="tab" id="q-tab-mac" data-os="mac" aria-controls="q-mac" aria-selected="true">macOS</button>
+            <button type="button" role="tab" id="q-tab-linux" data-os="linux" aria-controls="q-linux" aria-selected="false" tabindex="-1">Linux</button>
+            <button type="button" role="tab" id="q-tab-windows" data-os="windows" aria-controls="q-windows" aria-selected="false" tabindex="-1">Windows</button>
+          </div>
+          <button class="copy" type="button">Copy</button>
+        </div>
+        <div role="tabpanel" id="q-mac" aria-labelledby="q-tab-mac"><p class="tabs__panel-title">macOS</p><pre tabindex="0"><code><span class="p">$ </span>curl -fsSL https://shangos.madusha.dev/setup.sh | bash</code></pre></div>
+        <div role="tabpanel" id="q-linux" aria-labelledby="q-tab-linux"><p class="tabs__panel-title">Linux</p><pre tabindex="0"><code><span class="p">$ </span>curl -fsSL https://shangos.madusha.dev/setup.sh | bash</code></pre></div>
+        <div role="tabpanel" id="q-windows" aria-labelledby="q-tab-windows"><p class="tabs__panel-title">Windows (PowerShell)</p><pre tabindex="0"><code><span class="p">PS&gt; </span>[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; iex ((New-Object Net.WebClient).DownloadString('https://shangos.madusha.dev/setup.ps1'))</code></pre></div>
+      </div>
+
+      <div class="acts">
+        <a class="btn btn--fill" href="https://github.com/madushas/shangos-launcher/releases/latest/download/shangos-release.apk" download>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0l-4.5-4.5M12 15l4.5-4.5M4 20h16"/></svg>Download APK</a>
+        <a class="btn btn--line" href="/setup/">Step-by-step setup</a>
+      </div>
+      <p class="small">Version <span data-rel="version">0.6.1</span> (<span data-rel="apk-size">2.9 MB</span>), for Android 12 or newer, MIT licence. Run the command on a computer on the same Wi-Fi as your TV; it takes about five minutes. The APK alone installs the app, but making it your home screen needs the setup.</p>
+    </div>
+
+    <div class="hero__stage">
+      <figure class="tv">
+        <div class="tv__bezel">
+          <img src="/assets/home-720.webp" srcset="/assets/home-720.webp 720w, /assets/home.webp 1280w" sizes="(min-width:1000px) 58vw, 100vw" width="1280" height="720" alt="The shangOS home screen on a TV: a clock and weather line, an Up Next row of three apps, a weather widget, and a row of app tiles over a teal and violet wallpaper." fetchpriority="high" decoding="async">
+        </div>
+        <div class="tv__stand" aria-hidden="true"></div>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<section class="reg reg--alt" id="tour" aria-labelledby="tour-h">
+  <div class="wrap">
+    <div class="reg__head">
+      <h2 class="h2" id="tour-h">Three screens. Nothing hiding behind them.</h2>
+      <p class="body">Home is what you see when the TV wakes. Apps is everything installed. Settings is where you change how it looks, and every option is on one page.</p>
+    </div>
+    <div class="tour">
+      <div class="tour__tabs" role="radiogroup" aria-label="Screen">
+        <input class="vh" type="radio" name="t" id="t1" checked><label for="t1">Apps</label>
+        <input class="vh" type="radio" name="t" id="t2"><label for="t2">Settings</label>
+        <input class="vh" type="radio" name="t" id="t3"><label for="t3">Widget editor</label>
+      </div>
+      <!-- SWAP: replace each .shot with <img src="…" width="1280" height="720" alt="…" loading="lazy" decoding="async"> -->
+      <div class="tour__panel" id="p1"><div class="shot" role="img" aria-label="Apps screen screenshot, coming soon"><span>Apps screenshot, coming soon</span></div></div>
+      <div class="tour__panel" id="p2"><div class="shot" role="img" aria-label="Settings screen screenshot, coming soon"><span>Settings screenshot, coming soon</span></div></div>
+      <div class="tour__panel" id="p3"><div class="shot" role="img" aria-label="Widget editor screenshot, coming soon"><span>Widget editor screenshot, coming soon</span></div></div>
+      <div class="tour__cap">
+        <p class="body">Every app is a tile you can reorder, hide or recolour. The order is yours, and it stays that way.</p>
+        <p class="body">Built for a remote: big targets, a visible focus, and every action reachable with the d-pad and OK.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="reg" aria-labelledby="gone-h">
+  <div class="wrap">
+    <div class="reg__head"><h2 class="h2" id="gone-h">The first screen belongs to you again.</h2></div>
+    <div class="two">
+      <div class="no"><h3>Not here</h3>
+        <ul><li>Ads</li><li>Recommendations</li><li>Trackers and analytics</li><li>Accounts and sign-ins</li></ul></div>
+      <div><h3>Here instead</h3>
+        <ul>
+          <li>Up Next<small>The shows you were already watching, pulled from your streaming apps.</small></li>
+          <li>Now Playing<small>What’s on, with play and pause, right on Home.</small></li>
+          <li>Your apps, in your order<small>Reorder, hide and recolour. It stays put.</small></li>
+        </ul></div>
+    </div>
+  </div>
+</section>
+
+<section class="reg reg--alt" id="features" aria-labelledby="feat-h">
+  <div class="wrap">
+    <div class="reg__head"><h2 class="h2" id="feat-h">Small details, done carefully.</h2></div>
+    <div class="bento">
+      <article class="cell cell--wide"><h3 class="h3">Weather, Up Next and Now Playing, side by side.</h3><p>Choose what Home shows and where. Weather is off until you turn it on, and it uses a city you pick rather than your location.</p>
+        <div class="crop"><img src="/assets/home.webp" width="1280" height="720" alt="Close-up of the Up Next row and weather widget on the shangOS home screen." loading="lazy" decoding="async"></div></article>
+      <article class="cell"><h3 class="h3">Hold OK to lift a tile.</h3><p>Move it with the d-pad and drop it where you want it. No menus, and no mouse needed.</p><div class="tiles" aria-hidden="true"><i></i><i></i><i></i><i></i></div></article>
+      <article class="cell"><h3 class="h3">A wallpaper that follows the sun.</h3><p>Daybreak switches from day to night with sunrise and sunset in your city. Or use your own photo.</p></article>
+      <article class="cell"><h3 class="h3">Tiles borrow from each app’s icon.</h3><p>Every tile gets its own colour, so the row reads at a glance from across the room.</p><div class="swatch" aria-hidden="true"><i class="sw1"></i><i class="sw2"></i><i class="sw3"></i><i class="sw4"></i></div></article>
+      <article class="cell"><h3 class="h3">Made on a small HD stick, so it’s fast on one.</h3><p>Three performance levels trade effects for speed, so it stays smooth on devices where the stock home screen struggles.</p><div class="levels" aria-hidden="true"><span>Light</span><span>Balanced</span><span>Quality</span></div></article>
+    </div>
+  </div>
+</section>
+
+<section class="reg" id="privacy" aria-labelledby="priv-h">
+  <div class="wrap">
+    <div class="reg__head">
+      <h2 class="h2" id="priv-h">Two things can touch the network. Both are yours to control.</h2>
+      <p class="body">Everything else stays on the TV. The Offline build has no internet permission at all, so Android itself refuses it.</p>
+    </div>
+    <div class="tbl-wrap"><table class="tbl">
+      <thead><tr><th scope="col">Feature</th><th scope="col">When</th><th scope="col">What is sent, and to whom</th></tr></thead>
+      <tbody>
+        <tr><th scope="row" class="rowh">Weather</th><td>Only if you turn it on.</td><td>A request to <code>api.open-meteo.com</code> with the rough position of the city you chose. Never from GPS.</td></tr>
+        <tr><th scope="row" class="rowh">Poster pictures</th><td>Wi-Fi and Ethernet by default. Off or Always if you prefer.</td><td>The picture is fetched from the address your streaming app published for that item.</td></tr>
+      </tbody></table></div>
+    <p class="small mt">Open source under the MIT licence. <a href="/privacy/">Full privacy page</a> and <a href="https://github.com/madushas/shangos-launcher" rel="noopener">the code</a>.</p>
+  </div>
+</section>
+
+<section class="reg reg--alt" id="install" aria-labelledby="inst-h">
+  <div class="wrap">
+    <div class="reg__head">
+      <h2 class="h2" id="inst-h">Five minutes, once.</h2>
+      <p class="body">Google TV has no setting for choosing a different home app, so it’s set once from a computer. The command at the top of this page does it for you.</p>
+    </div>
+    <ol class="steps">
+      <li><h3 class="h3">Turn on debugging</h3><p>On the TV, open Settings, About, and press OK on the build entry seven times. Then switch on USB or Wireless debugging in Developer options.</p></li>
+      <li><h3 class="h3">Run the command</h3><p>Paste it into a terminal on a computer on the same Wi-Fi. It finds the TV and checks it runs Android 12 or newer.</p></li>
+      <li><h3 class="h3">Press Home</h3><p>Follow the prompts. When it’s done, shangOS is your home screen. The TV’s own home stays installed as a fallback.</p></li>
+    </ol>
+    <div class="dl">
+      <div><h3 class="h3">Standard</h3><p>Weather and poster pictures can use the network, under your control. Right for most people.</p>
+        <a class="btn btn--fill" href="https://github.com/madushas/shangos-launcher/releases/latest/download/shangos-release.apk" download><span>Download version <span data-rel="version">0.6.1</span></span></a></div>
+      <div><h3 class="h3">Offline</h3><p>Compiled without the internet permission. No weather, no posters, and nothing leaves the TV.</p>
+        <a class="btn btn--line" href="https://github.com/madushas/shangos-launcher/releases/latest/download/shangos-offline.apk" download>Download Offline build</a></div>
+    </div>
+    <p class="note body"><strong>Check what you download.</strong> Every release is signed and ships with a <code>SHA256SUMS</code> file; the signing fingerprint is in the <a href="https://github.com/madushas/shangos-launcher/releases/latest" rel="noopener">release notes</a>. To go back, run the setup again and choose <em>Remove shangOS</em>. <a href="/setup/#what-changes">See exactly what changes</a>.</p>
+  </div>
+</section>
+
+<section class="reg" id="faq" aria-labelledby="faq-h">
+  <div class="wrap split">
+    <div class="reg__head"><h2 class="h2" id="faq-h">Before you install.</h2><p class="body">Short answers. The <a href="/setup/">setup page</a> has the long ones.</p></div>
+    <div class="faq">
+      <details><summary>Will it work on my TV?</summary><div class="faq__a"><p>It needs an Android TV or Google TV on Android 12 or newer. It was built and measured on one small stick (an onn. Full HD Streaming Device) and hasn’t been tested on every brand, so please <a href="https://github.com/madushas/shangos-launcher/issues" rel="noopener">tell me what you find</a>. Not for phones, tablets or Fire TV.</p></div></details>
+      <details><summary>What does it change on my TV?</summary><div class="faq__a"><p>It installs one app and makes it the home screen. The TV’s own home and setup apps stay switched on, so the TV always has somewhere to start. No root, no firmware changes. <a href="/setup/#what-changes">Full list</a>.</p></div></details>
+      <details><summary>Does it block ads in other apps?</summary><div class="faq__a"><p>shangOS shows none itself, but it doesn’t change other apps. The setup can optionally switch on an ad and tracker filter for the whole TV (Android’s Private DNS). It’s off by default and has limits, so <a href="/setup/#block-ads">read them first</a>.</p></div></details>
+      <details><summary>How do updates work?</summary><div class="faq__a"><p>It never checks for or downloads updates on its own. Run the setup again, or install the new APK over the old one. Releases use the same signing key, so your order, names and wallpaper stay.</p></div></details>
+      <details><summary>Is it safe?</summary><div class="faq__a"><p>You can check each part yourself: the source is public, releases are signed, and the setup verifies <code>SHA256SUMS</code> before installing. No accounts, no analytics. See the <a href="/privacy/">privacy page</a>.</p></div></details>
+      <details><summary>Who makes it?</summary><div class="faq__a"><p>A hobby project, maintained in spare time under the MIT licence. It began as a fork of <a href="https://github.com/0xProbabillity/luma-tv" rel="noopener">Luma TV</a>; see the <a href="/licenses/">credits</a>.</p></div></details>
+    </div>
+  </div>
+</section>
+
+<section class="closing" aria-labelledby="end-h">
+  <div class="wrap">
+    <h2 class="h2" id="end-h">Make the first screen yours.</h2>
+    <div class="acts"><a class="btn btn--fill" href="#quick">Copy the install command</a><a class="btn btn--line" href="https://github.com/madushas/shangos-launcher" rel="noopener">View the source</a></div>
+  </div>
+</section>

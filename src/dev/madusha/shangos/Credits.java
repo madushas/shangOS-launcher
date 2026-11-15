@@ -54,6 +54,13 @@ final class Credits {
                 "Weather forecasts, only if you turn Weather on. Weather data by Open-Meteo.com.",
                 R.raw.license_ccby),
         new Credit(
+                "Inter",
+                "Rasmus Andersson and The Inter Project Authors",
+                "OFL-1.1",
+                "https://github.com/rsms/inter",
+                "The typeface of the launcher (Regular and Medium, subset to Latin). Used unchanged, under the SIL Open Font License.",
+                R.raw.license_ofl),
+        new Credit(
                 "GeoNames",
                 "GeoNames contributors",
                 "CC-BY-4.0",

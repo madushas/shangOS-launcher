@@ -25,7 +25,9 @@ final class WidgetBoard extends FrameLayout {
             DOTS_Y = 380;
 
     /** Every widget, in the default order. */
-    static final String[] IDS = {"upnext", "weather", "inputs", "control", "music"};
+    static final String[] IDS = {
+        "upnext", "weather", "inputs", "control", "music", "sunmoon", "glance"
+    };
 
     /**
      * Widgets do their network and disk work here, away from the launcher's own loader (wallpapers,
@@ -87,6 +89,10 @@ final class WidgetBoard extends FrameLayout {
                 return "Weather";
             case "music":
                 return "Now Playing";
+            case "sunmoon":
+                return "Sun and Moon";
+            case "glance":
+                return "System";
             default:
                 return "Control";
         }
@@ -102,6 +108,8 @@ final class WidgetBoard extends FrameLayout {
                 return "partly";
             case "music":
                 return "note";
+            case "sunmoon":
+                return "partly";
             default:
                 return "gear";
         }
@@ -115,6 +123,10 @@ final class WidgetBoard extends FrameLayout {
                 return "Off until you turn it on. Contacts open-meteo.com when on.";
             case "music":
                 return "What's playing on this TV, with play, pause and skip.";
+            case "sunmoon":
+                return "Where the sun is between today's sunrise and sunset, and the moon's phase.";
+            case "glance":
+                return "How the network is, and how full the storage and memory are.";
             case "inputs":
                 return "Your HDMI devices and live TV: switch to a console or a set-top box in one"
                         + " press.";
@@ -123,12 +135,34 @@ final class WidgetBoard extends FrameLayout {
         }
     }
 
+    /** Cards that stretch to fill a page: their layouts follow their width. */
+    static final String[] GROWABLE = {"sunmoon", "glance"};
+
+    /** The most a growable card may become, so one card alone on a page is not stretched out. */
+    static final float MAX_GROW = 560;
+
+    static boolean growable(String id) {
+        return Arrays.asList(GROWABLE).contains(id);
+    }
+
+    /**
+     * The width of each card on a page, so the page fills its row with no empty slot: spare width
+     * (from a missing card, say) is shared by the growable cards, up to MAX_GROW each. The group
+     * is then centred; {@code layout} is the page's ids.
+     */
+    static float[] fit(List<String> layout) {
+        return CardFit.widths(layout, id -> width(id), WidgetBoard::growable, ROW_W, GAP, MAX_GROW);
+    }
+
     static float width(String id) {
         switch (id) {
             case "upnext":
                 return 560;
             case "weather":
                 return 288;
+            case "sunmoon":
+            case "glance":
+                return 300;
             case "inputs":
                 return InputsWidget.widthFor(InputsWidget.count);
             default:
@@ -215,13 +249,15 @@ final class WidgetBoard extends FrameLayout {
             page.setClipChildren(false);
             page.setClipToPadding(false);
             ArrayList<Widget> list = new ArrayList<>();
-            float x = X;
-            for (String id : layout.get(p)) {
-                Widget w = create(id);
+            List<String> ids = layout.get(p);
+            float[] ws = fit(ids);
+            float x = CardFit.centred(ws, X, ROW_W, GAP);
+            for (int i = 0; i < ids.size(); i++) {
+                Widget w = create(ids.get(i), ws[i]);
                 if (w == null) continue;
-                page.addView(w, lp(width(id), ROW_H, x, ROW_Y));
+                page.addView(w, lp(ws[i], ROW_H, x, ROW_Y));
                 list.add(w);
-                x += width(id) + GAP;
+                x += ws[i] + GAP;
             }
             page.setVisibility(p == index ? VISIBLE : INVISIBLE);
             addView(page, new LayoutParams(-1, -1));
@@ -244,7 +280,7 @@ final class WidgetBoard extends FrameLayout {
         paintDots(false);
     }
 
-    private Widget create(String id) {
+    private Widget create(String id, float width) {
         Context c = getContext();
         switch (id) {
             case "upnext":
@@ -257,6 +293,10 @@ final class WidgetBoard extends FrameLayout {
                 return new ControlWidget(c, host);
             case "inputs":
                 return new InputsWidget(c, host);
+            case "sunmoon":
+                return new SunMoonWidget(c, host, width);
+            case "glance":
+                return new GlanceWidget(c, host, width);
             default:
                 return null;
         }

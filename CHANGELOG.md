@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.6.4: Website port, a bundled typeface, a status capsule, two new widgets
+- **Website**: the new design (Astra) is ported into `tools/build-site.py`: one header with a menu, the theme choice, the Download button, the
+  footer, a strict Content-Security-Policy (`docs/_headers`, with the hash of the one inline script), and the new home page. The version on
+  the site comes from `VERSION`. The setup, guide, privacy and licence pages keep their content and now use the new look.
+- **Typeface**: Inter (Regular and Medium, Latin, about 83 KB each) is bundled, so every TV draws the same letters. It is credited in Settings,
+  Licences and `NOTICE.md`. If the font cannot be read, the system face is used.
+- **Status capsule**: the clock and its status icons (network, VPN, muted) share one frosted panel at the top right, the height of the tab
+  bar. Calm mode fades the panel as a whole.
+- **Sun and Moon** widget: where the sun is between today's sunrise and sunset (the chosen city, else the time zone's), the two times, and
+  the moon's phase with its lit part. Computed on the TV; no permission, no network.
+- **System** widget: the network (Wi-Fi with its bars, Ethernet, or offline), free storage and free memory. Reads the system's own numbers, no
+  new permission; refreshes every 30 seconds while Home is shown.
+- Both new widgets are on by default and can be turned off in the widget editor.
+- Under the hood: `Moon` (the phase, unit tested), `SunMoonWidget`, `GlanceWidget`. Tests: 89.
+- **Benchmark names the launcher it measured.** The TV's own launcher is now labelled by what it is (Google TV Home, Android TV Home, or the
+  TV's own home) instead of a generic "stock". The site flags any shangOS or Luma TV measurement that is behind the latest release. Luma TV's
+  latest known release is 2.5; the page's current numbers are Luma 2.4, so they need re-measuring on a TV.
+- Not in this release: the Clock pack, the weather refinement, and the Large and Extra-large size classes for bigger TVs (planned for 0.6.5).
+
 ## 0.6.3: Roomier layout, a bigger preview, and status icons
 - **Layout size** (Settings, Appearance): Compact (6 apps a row), Comfortable (5, the default) or Cozy (4, larger tiles with more space).
   Every size keeps the same 50-unit side margins, so the row never runs off a bigger screen.
