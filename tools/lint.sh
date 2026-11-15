@@ -35,3 +35,7 @@ done
 xmllint --noout AndroidManifest.xml res/values/*.xml res/xml/*.xml
 git diff --check
 echo "Lint checks passed."
+
+# The wizard's TUI block must match tools/tui.sh.
+python3 tools/inline-tui.py --check || exit 1
+python3 tools/check-strings.py || exit 1

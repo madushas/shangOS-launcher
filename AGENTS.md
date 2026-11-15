@@ -25,4 +25,6 @@ shangOS is a launcher for Android TV: plain Java, one Activity, no AndroidX, no 
 - Everything must work on the Light performance tier or be off there. No per-frame allocation, no per-frame blur, no video.
 - Every claim shown to the user or written in the docs must be true: update `CHANGELOG.md`, `docs/TESTING.md` and `docs/dev/ARCHITECTURE.md`
   with the change.
+- The TUI for `shangos.sh` is written once in `tools/tui.sh`: edit it there, then run `python3 tools/inline-tui.py` (lint checks the copy).
+  Test it with `python3 tools/tests/tui_test.py`. Lint also runs `tools/check-strings.py`, so an unescaped apostrophe in a string is caught.
 - Format with `tools/format.sh`; Java 8 source level (`--release 8`); zero compiler warnings.
