@@ -69,8 +69,7 @@ final class AboutScreen {
         panel.addView(
                 paragraph(
                         "Open source under the MIT licence, and based on Luma TV by 0xProbability."
-                            + " Wallpapers include CC0 panoramas from Poly Haven. Licences shows"
-                            + " everything it uses.",
+                            + " Wallpapers are Pexels photographs. Licences shows everything it uses.",
                         12,
                         0x99FFFFFF),
                 ui.pos(500, 54, 27, 182));

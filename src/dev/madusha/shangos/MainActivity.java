@@ -1,4 +1,5 @@
 package dev.madusha.shangos;
+import android.content.Intent;
 
 import android.animation.*;
 import android.app.*;
@@ -757,7 +758,39 @@ public final class MainActivity extends Activity {
                 public void reload(int row) {
                     MainActivity.this.reload(row);
                 }
+
+                public android.app.Activity activity() {
+                    return MainActivity.this;
+                }
             };
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, android.content.Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == WallpaperPicker.REQUEST_BROWSE_PHOTO
+                && resultCode == RESULT_OK
+                && data != null
+                && data.getData() != null) {
+            final android.net.Uri uri = data.getData();
+            WidgetBoard.IO.execute(() -> {
+                try {
+                    java.io.File dest = PhotoStore.incoming(this);
+                    try (java.io.InputStream in =
+                                 getContentResolver().openInputStream(uri);
+                         java.io.FileOutputStream out =
+                                 new java.io.FileOutputStream(dest)) {
+                        if (in == null) return;
+                        byte[] buf = new byte[8192];
+                        int n;
+                        while ((n = in.read(buf)) > 0) out.write(buf, 0, n);
+                    }
+                    PhotoStore.accept(this);
+                } catch (java.io.IOException | RuntimeException e) {
+                    Dbg.d("browse_photo", "copy failed: " + e.getClass().getSimpleName());
+                }
+            });
+        }
+    }
 
     private final SettingsScreen.Host settingsHost =
             new SettingsScreen.Host() {

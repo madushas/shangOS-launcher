@@ -40,12 +40,15 @@ final class Credits {
                 "The project this app started from: much of the Home screen design and code.",
                 R.raw.license_mit),
         new Credit(
-                "Poly Haven panoramas",
-                "Poly Haven and its artists",
-                "CC0-1.0",
-                "https://polyhaven.com",
-                "The Milky Way and Calm Sea wallpapers.",
-                R.raw.license_cc0),
+                "Pexels photographs",
+                "Noel BAUZA, Lea, Google DeepMind, Marie Gaebel, Natalya Rostun,"
+                        + " Raul Ling, Francesco Ungaro, Alexander RAW,"
+                        + " Willian Justen de Vasconcellos, Martin Wang",
+                "Pexels License",
+                "https://www.pexels.com/license/",
+                "All eleven wallpaper photographs. Free to use; no attribution required"
+                        + " by the licence, but credit is given here with gratitude.",
+                R.raw.license_pexels),
         new Credit(
                 "Open-Meteo",
                 "Open-Meteo.com",

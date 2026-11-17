@@ -20,10 +20,13 @@ The upstream author's donation addresses, QR codes, contact links and "Support t
 removed. They belong to the upstream author and must not appear in this fork.
 
 ## Artwork
-- The Milky Way and Calm Sea wallpapers are CC0 panoramas from Poly Haven (https://polyhaven.com).
-- The Daybreak, Aurora, Ember, Tide, Orchid and Glacier wallpapers, the launcher icon and the TV banner were made for this
-  project and are under the project's MIT licence. The wordmark in the banner is converted from Roboto Medium (Apache-2.0,
-  Google; https://github.com/googlefonts/roboto).
+- The eleven wallpaper photographs (Aurora, Veil, Horizon, Prism, Doha, Iceland, Namibia, Mountain
+  Lake, Blue Sky Sea, Swiss Alps, Xinjiang) are from Pexels (https://www.pexels.com), used under
+  the Pexels License (free for personal and commercial use; see `res/raw/license_pexels.txt` for
+  per-photo credits and photographer names).
+- The launcher icon and the TV banner were made for this project and are under the project's MIT
+  licence. The wordmark in the banner is converted from Roboto Medium (Apache-2.0, Google;
+  https://github.com/googlefonts/roboto).
 - No artwork from the upstream project remains.
 
 ## Data and services

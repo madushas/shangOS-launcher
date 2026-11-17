@@ -33,24 +33,24 @@ final class Promo {
     /** {title, line, detail, wallpaper, progress} */
     static final Object[][] VIDEOS = {
         {
-            "Under the Milky Way",
+            "Under the Northern Lights",
             "18 min left · YouTube",
-            "A night under the stars · 18 min left in YouTube",
-            R.drawable.wp_milkyway,
+            "A night under the aurora · 18 min left in YouTube",
+            R.drawable.wp_aurora,
             .62f
         },
         {
-            "Calm Sea, 4K",
+            "Architecture in Doha, 4K",
             "Next episode · YouTube",
-            "Waves at sunrise · Next episode in YouTube",
-            R.drawable.wp_sea,
+            "Light across stone and steel · Next episode in YouTube",
+            R.drawable.wp_doha,
             .0f
         },
         {
             "First Light",
             "6 min left · YouTube",
-            "Dawn over the mountains · 6 min left in YouTube",
-            R.drawable.wp_ember,
+            "Tomorrow's cities · 6 min left in YouTube",
+            R.drawable.wp_horizon,
             .86f
         },
     };

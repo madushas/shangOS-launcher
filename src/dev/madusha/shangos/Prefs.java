@@ -14,9 +14,9 @@ import java.util.Set;
  */
 final class Prefs {
     /** Bump when a key changes meaning, and add a step to {@link #migrate}. */
-    static final int SCHEMA = 1;
+    static final int SCHEMA = 2;
 
-    static final int DEFAULT_WALLPAPER = 0; // Daybreak: light by day, dark after sunset
+    static final int DEFAULT_WALLPAPER = 0; // Aurora
     static final int POSTERS_OFF = 0, POSTERS_UNMETERED = 1, POSTERS_ANY = 2;
 
     private final SharedPreferences sp;
@@ -40,6 +40,12 @@ final class Prefs {
         SharedPreferences.Editor e = sp.edit();
         if (version < 1)
             e.remove("silver_default").remove("scene_app_packages"); // keys of the upstream project
+        if (version < 2) {
+            int wp = sp.getInt("wallpaper", DEFAULT_WALLPAPER);
+            if (wp == 8 && sp.getBoolean("photo", false))
+                e.putInt("wallpaper", Wallpaper.PHOTO);
+            else if (wp >= Wallpaper.PHOTO) e.putInt("wallpaper", DEFAULT_WALLPAPER);
+        }
         e.putInt("v", SCHEMA).apply();
     }
 

@@ -68,18 +68,24 @@ prepare_launcher() {
 }
 
 REPORTS=()
+disable_stock_all() {
+    # Disable Google TV launcher and its home hooker / setup wrapper
+    for p in $STOCK_PKGS com.google.android.tungsten.setupwraith; do
+        if installed "$p" && ! disabled "$p"; then
+            echo "   Disabling $p so third-party launchers receive the Home intent"
+            sh pm disable-user --user 0 "$p" >/dev/null 2>&1
+        fi
+    done
+}
+
 run_one() { # run_one LABEL PACKAGE/ACTIVITY
     local label="$1" comp="$2"
     echo "== Measuring $label ($comp): about 5 minutes, do not touch the remote"
     prepare_launcher "$comp"
     if OUTDIR="$WORK" SET_HOME=1 COMPILE=speed tools/baseline.sh ${DEV:+-s "$DEV"} "$comp" "$label"; then REPORTS+=("$WORK/measure-$label.txt"); else echo "   $label failed; it is left out"; fi
 }
-case ",$ONLY," in *,shangos,*)
-    if installed dev.madusha.shangos; then run_one shangos dev.madusha.shangos/.MainActivity; else echo "shangOS is not installed on this TV: skipped"; fi ;;
-esac
-case ",$ONLY," in *,luma,*)
-    if installed dev.luma.tv; then run_one luma dev.luma.tv/.MainActivity; else echo "Luma TV is not installed (install the latest from https://github.com/0xProbabillity/luma-tv/releases): skipped"; fi ;;
-esac
+
+# 1. Measure stock first if requested, then disable it entirely so subsequent launchers can bind Home reliably
 case ",$ONLY," in *,stock,*)
     found="" foundpkg=""
     for p in $STOCK_PKGS; do
@@ -92,13 +98,30 @@ case ",$ONLY," in *,stock,*)
         fi
         [[ " $WAS_DISABLED " == *" $p "* ]] && sh pm disable-user --user 0 "$p" >/dev/null 2>&1
     done
-    # The label names the launcher (googletv, androidtv or tvhome), so the site can say which one was measured.
     case "$foundpkg" in
         com.google.android.tvlauncher|com.google.android.apps.tv.launcherx) lbl=googletv ;;
         com.google.android.leanbacklauncher) lbl=androidtv ;;
         *) lbl=tvhome ;;
     esac
-    if [ -n "$found" ]; then run_one "$lbl" "$found"; else echo "No stock launcher found: skipped"; fi ;;
+    if [ -n "$found" ]; then
+        run_one "$lbl" "$found"
+    else
+        echo "No stock launcher found: skipped"
+    fi
+    disable_stock_all
+    ;;
+esac
+
+# 2. Measure shangOS
+case ",$ONLY," in *,shangos,*)
+    disable_stock_all
+    if installed dev.madusha.shangos; then run_one shangos dev.madusha.shangos/.MainActivity; else echo "shangOS is not installed on this TV: skipped"; fi ;;
+esac
+
+# 3. Measure luma
+case ",$ONLY," in *,luma,*)
+    disable_stock_all
+    if installed dev.luma.tv; then run_one luma dev.luma.tv/.MainActivity; else echo "Luma TV is not installed (install the latest from https://github.com/0xProbabillity/luma-tv/releases): skipped"; fi ;;
 esac
 if [ "${#REPORTS[@]}" -eq 0 ]; then echo "Nothing was measured."; exit 1; fi
 python3 tools/bench-json.py "${REPORTS[@]}" --out "$OUT" && python3 tools/bench-json.py --check "$OUT"

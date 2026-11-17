@@ -71,25 +71,14 @@ final class Wallpaper extends FrameLayout {
 
     /** One wallpaper choice. A look may have a second picture for after sunset. */
     static final class Look {
-        final String name;
+        final String name, author;
         final int day, night, thumb, glow;
         final boolean paleDay, paleNight;
 
-        Look(
-                String name,
-                int day,
-                int night,
-                int thumb,
-                int glow,
-                boolean paleDay,
-                boolean paleNight) {
-            this.name = name;
-            this.day = day;
-            this.night = night;
-            this.thumb = thumb;
-            this.glow = glow;
-            this.paleDay = paleDay;
-            this.paleNight = paleNight;
+        Look(String name, String author, int day, int night, int thumb, int glow,
+                boolean paleDay, boolean paleNight) {
+            this.name = name; this.author = author; this.day = day; this.night = night;
+            this.thumb = thumb; this.glow = glow; this.paleDay = paleDay; this.paleNight = paleNight;
         }
     }
 
@@ -98,37 +87,114 @@ final class Wallpaper extends FrameLayout {
 
     static final Look[] LOOKS = {
         new Look(
-                "Daybreak",
-                R.drawable.wp_daybreak_day,
-                R.drawable.wp_daybreak_night,
-                R.drawable.thumb_0,
-                0xFFFFC9A8,
-                true,
-                false),
-        new Look("Aurora", R.drawable.wp_aurora, 0, R.drawable.thumb_1, 0xFF38FFC9, false, false),
-        new Look("Ember", R.drawable.wp_ember, 0, R.drawable.thumb_2, 0xFFFFA81E, false, false),
-        new Look("Tide", R.drawable.wp_tide, 0, R.drawable.thumb_3, 0xFF63EEF0, false, false),
-        new Look("Orchid", R.drawable.wp_orchid, 0, R.drawable.thumb_4, 0xFFFF5CB0, false, false),
-        new Look("Glacier", R.drawable.wp_glacier, 0, R.drawable.thumb_5, 0xFFFFFFFF, true, true),
-        new Look(
-                "Milky Way",
-                R.drawable.wp_milkyway,
+                "Aurora",
+                "Photo by Noel BAUZA · Pexels",
+                R.drawable.wp_aurora,
                 0,
-                R.drawable.thumb_6,
-                0xFFBFD4FF,
+                R.drawable.thumb_0,
+                0xFF38FFC9,
                 false,
                 false),
-        new Look("Calm Sea", R.drawable.wp_sea, 0, R.drawable.thumb_7, 0xFFFFD08A, false, false),
-        // The last look is the user's own photo (PhotoStore); its picture and thumbnail are not
-        // resources, and the picker only offers it once a photo exists.
-        new Look("Your photo", PHOTO_PICTURE, 0, PHOTO_THUMB, 0xFFBFD4FF, false, false),
+        new Look(
+                "Veil",
+                "Photo by Lea · Pexels",
+                R.drawable.wp_veil,
+                0,
+                R.drawable.thumb_1,
+                0xFFBC8F8F,
+                false,
+                false),
+        new Look(
+                "Horizon",
+                "Illustration by Google DeepMind · Pexels",
+                R.drawable.wp_horizon,
+                0,
+                R.drawable.thumb_2,
+                0xFF63EEF0,
+                false,
+                false),
+        new Look(
+                "Prism",
+                "Photo by Marie Gaebel · Pexels",
+                R.drawable.wp_prism,
+                0,
+                R.drawable.thumb_3,
+                0xFFFF5CB0,
+                false,
+                false),
+        new Look(
+                "Doha",
+                "Photo by Natalya Rostun · Pexels",
+                R.drawable.wp_doha,
+                0,
+                R.drawable.thumb_4,
+                0xFFFFD08A,
+                false,
+                false),
+        new Look(
+                "Mountain Lake",
+                "Photo by Alexander RAW · Pexels",
+                R.drawable.wp_mountain_lake,
+                0,
+                R.drawable.thumb_5,
+                0xFF60B8A0,
+                false,
+                false),
+        new Look(
+                "Xinjiang",
+                "Photo by Martin Wang · Pexels",
+                R.drawable.wp_xinjiang,
+                0,
+                R.drawable.thumb_6,
+                0xFF78C898,
+                false,
+                false),
+        new Look(
+                "Iceland",
+                "Photo by Raul Ling · Pexels",
+                R.drawable.wp_iceland,
+                0,
+                R.drawable.thumb_7,
+                0xFF80C8E8,
+                false,
+                false),
+        new Look(
+                "Blue Sky Sea",
+                "Photo by Francesco Ungaro · Pexels",
+                R.drawable.wp_blue_sky_sea,
+                0,
+                R.drawable.thumb_8,
+                0xFF48B0E8,
+                false,
+                false),
+        new Look(
+                "Namibia",
+                "Photo by Francesco Ungaro · Pexels",
+                R.drawable.wp_hardap_nambia,
+                0,
+                R.drawable.thumb_9,
+                0xFFE8A060,
+                false,
+                false),
+        new Look(
+                "Swiss Alps",
+                "Photo by Willian Justen de Vasconcellos · Pexels",
+                R.drawable.wp_swiss_alps,
+                0,
+                R.drawable.thumb_10,
+                0xFF90D8C0,
+                true,
+                false),
+        new Look("Your photo", "Your own photo", PHOTO_PICTURE, 0, PHOTO_THUMB, 0xFFBFD4FF, false, false),
     };
     static final String[] NAMES = new String[LOOKS.length];
+    static final String[] AUTHORS = new String[LOOKS.length];
     static final int[] THUMBS = new int[LOOKS.length];
 
     static {
         for (int i = 0; i < LOOKS.length; i++) {
             NAMES[i] = LOOKS[i].name;
+            AUTHORS[i] = LOOKS[i].author;
             THUMBS[i] = LOOKS[i].thumb;
         }
     }

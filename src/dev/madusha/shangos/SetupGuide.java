@@ -215,14 +215,11 @@ final class SetupGuide {
                 overlays.valueRow(
                         list,
                         "Wallpaper",
-                        () ->
-                                Wallpaper.NAMES[
-                                        Math.min(prefs.wallpaper(), Wallpaper.NAMES.length - 1)],
-                        () ->
-                                overlays.menu(
+                        () -> Wallpaper.NAMES[Wallpaper.choice(prefs)],
+                        () -> overlays.menu(
                                         "Wallpaper",
                                         Wallpaper.NAMES,
-                                        Math.min(prefs.wallpaper(), Wallpaper.NAMES.length - 1),
+                                        Wallpaper.choice(prefs),
                                         choice -> {
                                             prefs.setWallpaper(choice);
                                             host.lookChanged();
@@ -360,7 +357,7 @@ final class SetupGuide {
             case WELCOME:
                 return "Welcome to " + activity.getString(R.string.app_name);
             case LOOK:
-                return "Pick a look";
+                return "Choose a wallpaper. Change it any time in Settings.";
             case PERFORMANCE:
                 return "Made to fit your TV";
             case PRIVACY:
@@ -381,8 +378,7 @@ final class SetupGuide {
                         + " This takes about a minute, every step can be skipped, and everything"
                         + " can be changed later in Settings.";
             case LOOK:
-                return "Choose a wallpaper. Daybreak follows the sun: light by day, dark after"
-                        + " sunset. Change it any time in Settings.";
+                return "Choose a wallpaper. Change it any time in Settings.";
             case PERFORMANCE:
                 return "It checked this TV: "
                         + Hardware.describe(activity)

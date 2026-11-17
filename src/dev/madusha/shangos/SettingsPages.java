@@ -99,12 +99,12 @@ final class SettingsPages {
                         () -> Wallpaper.NAMES[kit.style()],
                         null,
                         () -> wallpaperPicker.show(ROW_WALLPAPER),
-                        () ->
-                                kit.preview(
-                                        Wallpaper.THUMBS[kit.style()],
-                                        Wallpaper.NAMES[kit.style()],
-                                        "Eight wallpapers, from Daybreak to Calm Sea. Daybreak is"
-                                            + " light by day and dark after sunset.")));
+                        () -> {
+                            int cur = kit.style();
+                            String desc = Wallpaper.AUTHORS[cur]
+                                    + "\n\nEleven wallpapers from around the world — and your own photo. OK opens the full-screen picker.";
+                            kit.preview(Wallpaper.THUMBS[cur], Wallpaper.NAMES[cur], desc);
+                        }));
         controls.add(
                 kit.option(
                         list,
