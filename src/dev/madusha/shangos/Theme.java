@@ -40,6 +40,6 @@ final class Theme {
     /** Focused row inside a dark panel. */
     static final int PANEL_FOCUS = 0xFAFFFFFF, PANEL_FOCUS_INK = 0xFF111827, PANEL_ROW = 0x14FFFFFF;
 
-    /** Switch on / accent. */
-    static final int ON = 0xFF34C759, ACCENT = 0xFF0A84FF;
+    /** Accent colour. */
+    static final int ACCENT = 0xFF0A84FF;
 }

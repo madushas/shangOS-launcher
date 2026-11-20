@@ -147,8 +147,8 @@ final class WidgetBoard extends FrameLayout {
 
     /**
      * The width of each card on a page, so the page fills its row with no empty slot: spare width
-     * (from a missing card, say) is shared by the growable cards, up to MAX_GROW each. The group
-     * is then centred; {@code layout} is the page's ids.
+     * (from a missing card, say) is shared by the growable cards, up to MAX_GROW each. The group is
+     * then centred; {@code layout} is the page's ids.
      */
     static float[] fit(List<String> layout) {
         return CardFit.widths(layout, id -> width(id), WidgetBoard::growable, ROW_W, GAP, MAX_GROW);
@@ -311,10 +311,6 @@ final class WidgetBoard extends FrameLayout {
         p.leftMargin = px(x);
         p.topMargin = px(y);
         return p;
-    }
-
-    int pageCount() {
-        return layout.size();
     }
 
     void setActive(boolean value) {

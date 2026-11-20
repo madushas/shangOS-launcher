@@ -17,6 +17,14 @@ final class Prefs {
     static final int SCHEMA = 2;
 
     static final int DEFAULT_WALLPAPER = 0; // Aurora
+
+    /**
+     * Where "Your photo" sat in the list of wallpapers when schema 2 was written. A migration must
+     * not follow {@code Wallpaper.PHOTO}: that moves whenever a wallpaper is added, and Prefs must
+     * stay free of UI classes so the unit tests can compile it.
+     */
+    private static final int SCHEMA_2_PHOTO = 11;
+
     static final int POSTERS_OFF = 0, POSTERS_UNMETERED = 1, POSTERS_ANY = 2;
 
     private final SharedPreferences sp;
@@ -42,9 +50,8 @@ final class Prefs {
             e.remove("silver_default").remove("scene_app_packages"); // keys of the upstream project
         if (version < 2) {
             int wp = sp.getInt("wallpaper", DEFAULT_WALLPAPER);
-            if (wp == 8 && sp.getBoolean("photo", false))
-                e.putInt("wallpaper", Wallpaper.PHOTO);
-            else if (wp >= Wallpaper.PHOTO) e.putInt("wallpaper", DEFAULT_WALLPAPER);
+            if (wp == 8 && sp.getBoolean("photo", false)) e.putInt("wallpaper", SCHEMA_2_PHOTO);
+            else if (wp >= SCHEMA_2_PHOTO) e.putInt("wallpaper", DEFAULT_WALLPAPER);
         }
         e.putInt("v", SCHEMA).apply();
     }

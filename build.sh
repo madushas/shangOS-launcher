@@ -1,12 +1,13 @@
 #!/bin/bash
 # Build: ./build.sh [debug|release|offline]      (default: release)
-#   debug    debuggable, logger and QA/demo hooks ON.
+#   debug    debuggable, logger and QA/demo hooks ON. Dex only: no shrinking, so builds stay fast.
 #   release  silent, minimal; has the INTERNET permission (weather, posters; both off or opt-in).
 #   offline  release WITHOUT the INTERNET permission: the OS blocks every socket. Provable privacy.
 # Needs: JDK 17+, Android SDK (build-tools + platforms;android-34), python3, zip.
 # Env (all optional):
 #   ANDROID_SDK_ROOT  SDK folder (or ANDROID_HOME)      BUILD_TOOLS  version folder (default: newest)
 #   PLATFORM          default android-34                 ANDROID_JAR  explicit android.jar
+#   SHRINK            0 skips R8 in release and offline (plain d8), to tell a shrinker problem from a code problem
 #   SHANGOS_JDK          JDK home                           SHANGOS_GREETING  default greeting on Home
 #   SHANGOS_KEYSTORE, SHANGOS_KS_PASS, SHANGOS_KEY_ALIAS  release signing (see README "Signing")
 set -euo pipefail
@@ -55,10 +56,8 @@ for t in AAPT2 ZIPALIGN APKSIGNER; do [ -n "${!t}" ] || {
     echo "missing build tool: $t (install SDK build-tools)"
     exit 1
 }; done
-DX=""
-[ -z "$D8" ] && DX="$(command -v dalvik-exchange || true)"
-[ -n "$D8" ] || [ -n "$DX" ] || {
-    echo "missing d8 (SDK build-tools) and dalvik-exchange"
+[ -n "$D8" ] || {
+    echo "missing d8 (SDK build-tools)"
     exit 1
 }
 
@@ -104,22 +103,45 @@ PY
 LINK_FLAGS=()
 [ "$DEBUG" = true ] && LINK_FLAGS+=(--debug-mode)
 "$AAPT2" link -o "$OUT/resources.apk" -I "$ANDROID_JAR" --manifest "$OUT/AndroidManifest.xml" \
-    --java "$OUT/generated" --auto-add-overlay "${LINK_FLAGS[@]}" "$OUT/resources.zip" -R "$OUT/overlay.zip"
+    --java "$OUT/generated" --proguard "$OUT/aapt-rules.pro" --auto-add-overlay "${LINK_FLAGS[@]}" \
+    "$OUT/resources.zip" -R "$OUT/overlay.zip"
 find src "$OUT/gen" "$OUT/generated" -name '*.java' >"$OUT/sources.txt"
-JAVAC_FLAGS=(-encoding UTF-8 --release 8 -Xlint:-options -Xlint:deprecation -Xlint:unchecked -classpath "$ANDROID_JAR" -d "$OUT/classes")
+# Compile-only libraries (libs/*.jar: today androidx.annotation). Their annotations are not kept in the DEX.
+LIBS=("$ANDROID_JAR")
+for jar in libs/*.jar; do [ -f "$jar" ] && LIBS+=("$jar"); done
+CLASSPATH_LIBS="$(IFS=:; echo "${LIBS[*]}")"
+if [ "${#LIBS[@]}" -eq 1 ] && grep -rlq "androidx.annotation" src; then
+    echo "libs/ has no jar, but the sources use androidx.annotation: see libs/README.md"
+    exit 1
+fi
+JAVAC_FLAGS=(-encoding UTF-8 --release 8 -Xlint:-options -Xlint:deprecation -Xlint:unchecked -classpath "$CLASSPATH_LIBS" -d "$OUT/classes")
 [ "$DEBUG" = true ] && JAVAC_FLAGS+=(-g) || JAVAC_FLAGS+=(-g:none)
 javac "${JAVAC_FLAGS[@]}" @"$OUT/sources.txt" 2>"$OUT/javac.log" || {
     cat "$OUT/javac.log" >&2
     exit 1
 } # warnings are kept for tools/audit.sh
-if [ -n "$D8" ]; then
+# DEX. Release and offline go through R8 (shrinks unused code and optimises, keeps names readable);
+# debug, SHRINK=0 and a build-tools without R8 use plain d8.
+R8_JAR=""
+if [ "$DEBUG" = false ] && [ "${SHRINK:-1}" != 0 ] && [ -n "$BT" ] && [ -f "$BT/lib/d8.jar" ]; then
+    if java -cp "$BT/lib/d8.jar" com.android.tools.r8.R8 --version >/dev/null 2>&1; then
+        R8_JAR="$BT/lib/d8.jar"
+    else
+        echo "note: this build-tools has no R8; using d8 without shrinking" >&2
+    fi
+fi
+if [ -n "$R8_JAR" ]; then
+    R8_LIBS=()
+    for jar in "${LIBS[@]:1}"; do R8_LIBS+=(--classpath "$jar"); done
+    jar cf "$OUT/classes.jar" -C "$OUT/classes" .
+    java -cp "$R8_JAR" com.android.tools.r8.R8 --release --min-api 31 --lib "$ANDROID_JAR" \
+        "${R8_LIBS[@]}" --pg-conf proguard-rules.pro --pg-conf "$OUT/aapt-rules.pro" \
+        --pg-map-output "$OUT/mapping.txt" --output "$OUT/dex" "$OUT/classes.jar"
+else
     D8_FLAGS=(--lib "$ANDROID_JAR" --min-api 31 --output "$OUT/dex")
     [ "$DEBUG" = false ] && D8_FLAGS+=(--release)
     find "$OUT/classes" -name '*.class' >"$OUT/classes.txt"
     "$D8" "${D8_FLAGS[@]}" @"$OUT/classes.txt"
-else
-    echo "note: d8 not found, using dalvik-exchange (fine for Java 8 bytecode)" >&2
-    "$DX" --dex --min-sdk-version=26 --output="$OUT/dex/classes.dex" "$OUT/classes"
 fi
 cp "$OUT/resources.apk" "$OUT/unsigned.apk"
 (cd "$OUT/dex" && zip -q -X -u ../unsigned.apk classes.dex)

@@ -35,6 +35,21 @@ final class Metrics {
     /** Tiles per row: read by {@link AppTile} and {@link AppPages}. */
     static int columns = 5;
 
+    /**
+     * How far tile {@code index} is from the middle of its row, in tile steps: -2 and +2 at the
+     * ends of a five-tile row, -2.5 and +2.5 of a six-tile row. The parallax and the tile's depth
+     * follow the layout size through this, not a fixed row of six.
+     */
+    static float fromRowCentre(int index) {
+        return index % columns - (columns - 1) / 2f;
+    }
+
+    /** {@link #fromRowCentre} scaled so the row's ends are -1 and +1 (0 for a one-tile row). */
+    static float rowPosition(int index) {
+        float half = (columns - 1) / 2f;
+        return half == 0 ? 0 : fromRowCentre(index) / half;
+    }
+
     private static void set(int columns, float width, float spacing) {
         Metrics.columns = columns;
         tileW = width;

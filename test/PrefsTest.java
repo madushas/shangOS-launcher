@@ -45,6 +45,25 @@ public class PrefsTest {
     }
 
     @Test
+    public void schemaTwoMovesTheOldPhotoSlotAndDropsOutOfRangeChoices() {
+        FakePrefs withPhoto = new FakePrefs();
+        withPhoto.data.put("v", 1);
+        withPhoto.data.put("wallpaper", 8);
+        withPhoto.data.put("photo", true);
+        assertEquals(11, new Prefs(withPhoto).wallpaper());
+
+        FakePrefs outOfRange = new FakePrefs();
+        outOfRange.data.put("v", 1);
+        outOfRange.data.put("wallpaper", 12);
+        assertEquals(Prefs.DEFAULT_WALLPAPER, new Prefs(outOfRange).wallpaper());
+
+        FakePrefs ordinary = new FakePrefs();
+        ordinary.data.put("v", 1);
+        ordinary.data.put("wallpaper", 3);
+        assertEquals("a normal choice is kept", 3, new Prefs(ordinary).wallpaper());
+    }
+
+    @Test
     public void aNewerSchemaIsNotDowngraded() {
         FakePrefs f = new FakePrefs();
         f.data.put("v", Prefs.SCHEMA + 5);

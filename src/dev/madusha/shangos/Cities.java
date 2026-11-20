@@ -2,6 +2,9 @@ package dev.madusha.shangos;
 
 import android.content.Context;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.WorkerThread;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -48,12 +51,11 @@ final class Cities {
     }
 
     /** The built-in list. Reads the file once: call it off the main thread. */
-    static Cities of(Context context) throws IOException {
+    @WorkerThread
+    static Cities of(@NonNull Context context) throws IOException {
         Cities c = loaded;
         if (c != null) return c;
-        int id =
-                context.getResources()
-                        .getIdentifier("cities", "raw", context.getPackageName());
+        int id = context.getResources().getIdentifier("cities", "raw", context.getPackageName());
         if (id == 0) throw new IOException("no city list in this build");
         try (InputStream in = context.getResources().openRawResource(id)) {
             c = parse(in);
@@ -110,8 +112,7 @@ final class Cities {
         if (q.length() == 0) return new ArrayList<>();
         for (int pass = 0; pass < 2 && hits.size() < max; pass++)
             for (int i = 0; i < folded.length && hits.size() < max; i++) {
-                boolean match =
-                        pass == 0 ? folded[i].startsWith(q) : wordStartsWith(folded[i], q);
+                boolean match = pass == 0 ? folded[i].startsWith(q) : wordStartsWith(folded[i], q);
                 if (match && inCountry(i, wanted) && !hits.contains(i)) hits.add(i);
             }
         ArrayList<Places.Place> out = new ArrayList<>();
@@ -137,8 +138,8 @@ final class Cities {
     }
 
     /**
-     * "United States", or "OR, United States" when two results would look the same: the admin
-     * code if it is a name (US states, UK nations), else the coordinates.
+     * "United States", or "OR, United States" when two results would look the same: the admin code
+     * if it is a name (US states, UK nations), else the coordinates.
      */
     private String detail(int i, boolean twin) {
         String country = countryName(this.country[i]);

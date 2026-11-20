@@ -15,7 +15,7 @@ command -v xmllint >/dev/null || {
 shellcheck -x build.sh shangos.sh test/run.sh
 
 # Size budget (docs/dev/REFACTOR.md). A ratchet: lower MAIN_MAX after every extraction, never raise it.
-MAIN_MAX=800 # the composition root; do not raise
+MAIN_MAX=790 # the composition root; do not raise
 OTHER_MAX=700 # any other class; Widget subclasses are exempt
 SRC=src/dev/madusha/shangos
 over=0

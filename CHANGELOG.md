@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.6.7: Project cleanup and R8 builds
+- **R8 shrinking for release and offline builds.** `build.sh` runs R8 with `proguard-rules.pro` (shrink and optimise, no renaming, so crash reports
+  stay readable). The aapt2 link step supplies the keep rules for manifest components. Debug still uses d8; `SHRINK=0` skips R8; a build-tools
+  without R8 falls back to d8 with a note. `mapping.txt` is written to the build folder.
+- **`androidx.annotation` as a compile-only jar in `libs/`** (see `libs/README.md`). `@WorkerThread`, `@MainThread`, `@NonNull` and `@Nullable`
+  mark the blocking and main-thread-only calls (`Cities.of`, `WatchNext.query`, `PhotoStore.importFrom`, `WallpaperArt.compose`, `Wallpaper.load`,
+  `PageMotion`). Nothing is packaged in the APK.
+- **Fixed: Settings → Home could crash when an app is hidden.** The Hidden apps row was given the app list before it was created. The list is now built first.
+- **Fixed: the parallax and tile depth assumed six tiles per row.** The default layout has five (Comfortable) and Cozy has four, so the wallpaper
+  and the tiles leaned to one side. Both follow the layout size now (`Metrics.rowPosition`).
+- **Fixed: `test/run.sh` did not compile.** `Prefs` named `Wallpaper`, which the unit tests cannot include. The schema 2 migration now keeps its own
+  constant (a migration must not follow a list that grows). Added a test for it.
+- **Fixed: the Home widgets row listed only four widgets.** It now also names Sun and Moon and System.
+- **Size budget met again:** `MainActivity` was 829 lines against 800 and `Wallpaper` 701 against 700. The page entrance is now `PageMotion`, the
+  picture fitting is `WallpaperArt`, and the photo copy is `PhotoStore.importFrom` (a picture over the size limit is refused and its partial copy deleted). `MAIN_MAX` is 790.
+- **Removed dead code:** `Theme.ON`, `WidgetBoard.pageCount`, `Tint.isLight` (and its test), four unused locals in `SettingsPages`, an unused local in
+  `Wallpaper.load`, an orphan Javadoc, and the `dalvik-exchange` fallback in `build.sh` (d8 has shipped with build-tools since 28).
+- **Tidied:** the manifest's checked-in version now matches `VERSION`, the Now Playing comment sits above its service, `SettingsPages` uses `Prefs`
+  key constants, `AppRepo.TRIM_BACKGROUND` names the trim level that was a bare `40`, `Devices` now has a JUnit test in `test/` that CI runs
+  (it was a stand-alone program in `tools/`).
+- Tests: 93. VERSION 0.6.7 (versionCode 21).
+
 ## 0.6.6: Benchmarks state the performance choice they measured
 - **`tools/bench.sh` needs no environment variables.** It makes each launcher the default Home and compiles it first (`SET_HOME=1`,
   `COMPILE=speed`, now the script's own defaults), and it puts the TV's Home back when it finishes.

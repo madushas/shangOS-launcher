@@ -7,15 +7,15 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
-import android.graphics.LinearGradient;
 import android.graphics.Paint;
 import android.graphics.RectF;
-import android.graphics.Shader;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.View;
 import android.widget.FrameLayout;
+
+import androidx.annotation.WorkerThread;
 
 import java.io.PrintWriter;
 import java.util.Random;
@@ -75,10 +75,23 @@ final class Wallpaper extends FrameLayout {
         final int day, night, thumb, glow;
         final boolean paleDay, paleNight;
 
-        Look(String name, String author, int day, int night, int thumb, int glow,
-                boolean paleDay, boolean paleNight) {
-            this.name = name; this.author = author; this.day = day; this.night = night;
-            this.thumb = thumb; this.glow = glow; this.paleDay = paleDay; this.paleNight = paleNight;
+        Look(
+                String name,
+                String author,
+                int day,
+                int night,
+                int thumb,
+                int glow,
+                boolean paleDay,
+                boolean paleNight) {
+            this.name = name;
+            this.author = author;
+            this.day = day;
+            this.night = night;
+            this.thumb = thumb;
+            this.glow = glow;
+            this.paleDay = paleDay;
+            this.paleNight = paleNight;
         }
     }
 
@@ -185,7 +198,15 @@ final class Wallpaper extends FrameLayout {
                 0xFF90D8C0,
                 true,
                 false),
-        new Look("Your photo", "Your own photo", PHOTO_PICTURE, 0, PHOTO_THUMB, 0xFFBFD4FF, false, false),
+        new Look(
+                "Your photo",
+                "Your own photo",
+                PHOTO_PICTURE,
+                0,
+                PHOTO_THUMB,
+                0xFFBFD4FF,
+                false,
+                false),
     };
     static final String[] NAMES = new String[LOOKS.length];
     static final String[] AUTHORS = new String[LOOKS.length];
@@ -308,7 +329,7 @@ final class Wallpaper extends FrameLayout {
     void follow(int index) {
         picture.animate().cancel();
         glowHolder.animate().cancel();
-        float position = (index % 6 - 2.5f) / 2.5f;
+        float position = Metrics.rowPosition(index);
         float arc = 1 - position * position;
         if (host.motion()) {
             picture.animate()
@@ -329,8 +350,8 @@ final class Wallpaper extends FrameLayout {
 
     /**
      * The app focused on Home lights the room: {@code accent} (0 for none) tints the light behind
-     * the tiles and the picture dims a little. Off on Light performance and when the user turned
-     * it off.
+     * the tiles and the picture dims a little. Off on Light performance and when the user turned it
+     * off.
      */
     void stage(int accent) {
         if (!host.tier().animates() || !host.stageSetting()) {
@@ -482,8 +503,8 @@ final class Wallpaper extends FrameLayout {
                 });
     }
 
+    @WorkerThread
     private Bitmap load(int variant, int width, int height) {
-        Look look = look(variant);
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inPreferredConfig = Bitmap.Config.ARGB_8888;
         Bitmap source =
@@ -491,8 +512,8 @@ final class Wallpaper extends FrameLayout {
                         ? PhotoStore.decode(getContext(), width)
                         : BitmapFactory.decodeResource(getResources(), picture(variant), options);
         if (source == null) // the photo is gone or unreadable: the default look instead
-            source = BitmapFactory.decodeResource(getResources(), LOOKS[0].day, options);
-        Bitmap composed = compose(source, isPale(variant), width, height);
+        source = BitmapFactory.decodeResource(getResources(), LOOKS[0].day, options);
+        Bitmap composed = WallpaperArt.compose(source, isPale(variant), width, height);
         source.recycle();
         pendingFrost = Frost.blurred(composed); // the glass panels' picture, a few KB
         // A HARDWARE bitmap lives in graphics memory only: no second copy in the app's own memory.
@@ -633,69 +654,5 @@ final class Wallpaper extends FrameLayout {
                 canvas.drawBitmap(now, null, bounds, paint);
             }
         }
-    }
-
-    /**
-     * Scales the picture to cover the target (cropping the excess) and adds the veil that keeps the
-     * UI's text legible.
-     */
-    private static Bitmap compose(Bitmap source, boolean pale, int width, int height) {
-        Bitmap result = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-        Canvas c = new Canvas(result);
-        Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);
-        float scale =
-                Math.max(width / (float) source.getWidth(), height / (float) source.getHeight());
-        float w = source.getWidth() * scale, h = source.getHeight() * scale;
-        c.drawBitmap(
-                source,
-                null,
-                new RectF((width - w) / 2, (height - h) / 2, (width + w) / 2, (height + h) / 2),
-                paint);
-        if (pale) {
-            // A white veil behind the greeting and the favourites keeps dark text crisp on a pale
-            // picture.
-            paint.setShader(
-                    new LinearGradient(
-                            0,
-                            0,
-                            width * .75f,
-                            0,
-                            new int[] {0x8CF6F6F8, 0x33F6F6F8, 0x00F6F6F8},
-                            new float[] {0, .5f, 1},
-                            Shader.TileMode.CLAMP));
-            c.drawRect(0, 0, width, height, paint);
-            paint.setShader(
-                    new LinearGradient(
-                            0,
-                            0,
-                            0,
-                            height,
-                            new int[] {0x00F2F2F5, 0x00F2F2F5, 0x59F2F2F5},
-                            new float[] {0, .55f, 1},
-                            Shader.TileMode.CLAMP));
-            c.drawRect(0, 0, width, height, paint);
-        } else {
-            paint.setShader(
-                    new LinearGradient(
-                            0,
-                            0,
-                            width * .88f,
-                            0,
-                            new int[] {0x88000000, 0x28000000, 0x00000000},
-                            new float[] {0, .5f, 1},
-                            Shader.TileMode.CLAMP));
-            c.drawRect(0, 0, width, height, paint);
-            paint.setShader(
-                    new LinearGradient(
-                            0,
-                            0,
-                            0,
-                            height,
-                            new int[] {0x30000000, 0x06000000, 0x70000000, 0xA8000000},
-                            new float[] {0, .3f, .68f, 1},
-                            Shader.TileMode.CLAMP));
-            c.drawRect(0, 0, width, height, paint);
-        }
-        return result;
     }
 }

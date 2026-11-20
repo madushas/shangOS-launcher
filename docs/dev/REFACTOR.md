@@ -1,6 +1,6 @@
 # Refactor of MainActivity (0.4.1, done) and the plan for the "Feel" releases (0.4.2 to 0.4.5)
 
-Policy kept: plain Java, one Activity, no AndroidX, no Fragments, no Compose (see ARCHITECTURE.md). Every
+Policy kept: plain Java, one Activity, no AndroidX (annotations only, compile-only), no Fragments, no Compose (see ARCHITECTURE.md). Every
 extracted class gets one narrow `Host` interface, never the whole Activity.
 
 ## Rules

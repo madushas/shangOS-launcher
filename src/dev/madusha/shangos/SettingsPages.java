@@ -3,8 +3,8 @@ package dev.madusha.shangos;
 import android.app.Activity;
 import android.content.Intent;
 import android.provider.Settings;
-import android.widget.LinearLayout;
 import android.view.View;
+import android.widget.LinearLayout;
 
 import java.util.ArrayList;
 
@@ -91,7 +91,6 @@ final class SettingsPages {
 
     /** Settings, Appearance. */
     void appearance(Kit kit, LinearLayout list, ArrayList<View> controls) {
-        int wp = kit.style();
         controls.add(
                 kit.option(
                         list,
@@ -101,8 +100,11 @@ final class SettingsPages {
                         () -> wallpaperPicker.show(ROW_WALLPAPER),
                         () -> {
                             int cur = kit.style();
-                            String desc = Wallpaper.AUTHORS[cur]
-                                    + "\n\nEleven wallpapers from around the world — and your own photo. OK opens the full-screen picker.";
+                            String desc =
+                                    Wallpaper.AUTHORS[cur]
+                                            + "\n\n"
+                                            + "Eleven wallpapers from around the world — and your"
+                                            + " own photo. OK opens the full-screen picker.";
                             kit.preview(Wallpaper.THUMBS[cur], Wallpaper.NAMES[cur], desc);
                         }));
         controls.add(
@@ -125,7 +127,7 @@ final class SettingsPages {
                         list,
                         "Clock",
                         null,
-                        "clock",
+                        Prefs.CLOCK,
                         () -> {},
                         () ->
                                 kit.preview(
@@ -162,13 +164,12 @@ final class SettingsPages {
 
     /** Settings, Motion and sound. */
     void motion(Kit kit, LinearLayout list, ArrayList<View> controls) {
-        int wp = kit.style();
         controls.add(
                 kit.option(
                         list,
                         "Fluid motion",
                         null,
-                        "motion",
+                        Prefs.MOTION,
                         () -> {},
                         () ->
                                 kit.preview(
@@ -181,7 +182,7 @@ final class SettingsPages {
                         list,
                         "Living wallpaper",
                         null,
-                        "ambient",
+                        Prefs.AMBIENT,
                         host::ambientChanged,
                         () ->
                                 kit.preview(
@@ -264,7 +265,7 @@ final class SettingsPages {
                         list,
                         "Navigation sounds",
                         null,
-                        "sound",
+                        Prefs.SOUND,
                         () -> {},
                         () ->
                                 kit.preview(
@@ -275,7 +276,6 @@ final class SettingsPages {
 
     /** Settings, Home. */
     void home(Kit kit, LinearLayout list, ArrayList<View> controls) {
-        int wp = kit.style();
         widgetsRow = controls.size();
         controls.add(
                 kit.option(
@@ -291,8 +291,9 @@ final class SettingsPages {
                                         "Choose what Home shows above your apps: Up Next,"
                                                 + " Weather (off until you turn it on), "
                                                 + (InputsWidget.count > 0 ? "Inputs, " : "")
-                                                + "Now Playing and Control, and their order. Left"
-                                                + " and Right turn the pages.")));
+                                                + "Control, Now Playing, Sun and Moon and System,"
+                                                + " and their order. Left and Right turn the"
+                                                + " pages.")));
         final int locationRow = controls.size();
         controls.add(
                 kit.option(
@@ -347,7 +348,6 @@ final class SettingsPages {
 
     /** Settings, System. */
     void system(Kit kit, LinearLayout list, ArrayList<View> controls) {
-        int wp = kit.style();
         controls.add(
                 kit.option(
                         list,
@@ -404,7 +404,6 @@ final class SettingsPages {
                                                 + " · based on Luma TV (MIT)")));
     }
 
-
     private String widgetSummary() {
         boolean inputs = !InputsWidget.list(activity).isEmpty();
         int n = 0;
@@ -418,6 +417,4 @@ final class SettingsPages {
     private void widgetEditor() {
         new WidgetEditor(activity, ui, prefs, overlays, screens, widgetsRow);
     }
-
-    /** Selects row {@code i} of the Settings page once it is laid out. */
 }

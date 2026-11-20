@@ -3,10 +3,17 @@ package dev.madusha.shangos;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.WorkerThread;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * "Your photo", the one wallpaper that is not built in: a picture pushed from a computer with
@@ -20,7 +27,7 @@ final class PhotoStore {
     static final long MAX_BYTES = 24L << 20;
 
     /** Told (on a background thread) when the photo was replaced or removed; may be null. */
-    static volatile Runnable onChanged;
+    @Nullable static volatile Runnable onChanged;
 
     static File file(Context context) {
         return new File(context.getFilesDir(), "photo.jpg");
@@ -92,6 +99,43 @@ final class PhotoStore {
         prefs.setWallpaper(Wallpaper.PHOTO);
         notifyChanged();
         return true;
+    }
+
+    /**
+     * Copies a picture the user chose in the system picker into {@link #incoming} and runs it
+     * through {@link #accept}. Reads and writes files: call it off the main thread. A picture
+     * larger than {@link #MAX_BYTES} is refused, and the old photo kept, like any other bad one.
+     */
+    @WorkerThread
+    static boolean importFrom(@NonNull Context context, @NonNull Uri uri) {
+        File dest = incoming(context);
+        boolean tooBig = false;
+        try (InputStream in = context.getContentResolver().openInputStream(uri);
+                FileOutputStream out = new FileOutputStream(dest)) {
+            if (in == null) return false;
+            byte[] buffer = new byte[8192];
+            long total = 0;
+            int n;
+            while ((n = in.read(buffer)) > 0) {
+                total += n;
+                if (total > MAX_BYTES) {
+                    tooBig = true;
+                    break;
+                }
+                out.write(buffer, 0, n);
+            }
+        } catch (IOException | RuntimeException e) {
+            Dbg.d("photo", "import failed: " + e.getClass().getSimpleName());
+            //noinspection ResultOfMethodCallIgnored
+            dest.delete();
+            return false;
+        }
+        if (tooBig) {
+            //noinspection ResultOfMethodCallIgnored
+            dest.delete();
+            return false;
+        }
+        return accept(context);
     }
 
     /** Deletes the photo; if it was the wallpaper, the default look comes back. */

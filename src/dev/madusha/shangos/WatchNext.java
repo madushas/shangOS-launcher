@@ -5,6 +5,9 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.WorkerThread;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -26,7 +29,9 @@ final class WatchNext {
         String pkg, title, episodeTitle, season, episode, poster, thumbnail, intentUri;
         int type;
 
-        /** The landscape picture if the app gave one, else its poster; null when it gave neither. */
+        /**
+         * The landscape picture if the app gave one, else its poster; null when it gave neither.
+         */
         String art() {
             return thumbnail != null ? thumbnail : poster;
         }
@@ -61,7 +66,8 @@ final class WatchNext {
      * Every browsable programme, most recently watched first. Empty when the permission is not
      * granted or the provider refuses (some TVs have none). Blocking: never on the main thread.
      */
-    static ArrayList<Program> query(Context context) {
+    @WorkerThread
+    static ArrayList<Program> query(@NonNull Context context) {
         ArrayList<Program> out = new ArrayList<>();
         if (context.checkSelfPermission(LISTINGS) != PackageManager.PERMISSION_GRANTED) return out;
         String[] columns = {

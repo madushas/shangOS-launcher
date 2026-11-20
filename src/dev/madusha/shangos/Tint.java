@@ -54,14 +54,6 @@ final class Tint {
         return 0xFF000000 | (r << 16) | (g << 8) | b;
     }
 
-    /** True if dark text is more readable on {@code color} than light text (relative luminance). */
-    static boolean isLight(int color) {
-        double r = ((color >> 16) & 255) / 255.0,
-                g = ((color >> 8) & 255) / 255.0,
-                b = (color & 255) / 255.0;
-        return 0.2126 * r + 0.7152 * g + 0.0722 * b > .6;
-    }
-
     private static int clamp(double v) {
         return (int) Math.max(0, Math.min(255, Math.round(v)));
     }

@@ -1,6 +1,6 @@
 # For AI agents and new contributors
 
-shangOS is a launcher for Android TV: plain Java, one Activity, no AndroidX, no third-party libraries, no ads, no accounts. Read
+shangOS is a launcher for Android TV: plain Java, one Activity, no AndroidX or other library in the app (one compile-only annotations jar in `libs/`, never packaged), no ads, no accounts. Read
 `docs/dev/ARCHITECTURE.md` (who may depend on whom) and `docs/dev/PLAN.md` (what is planned and the rules) before changing anything.
 
 ## Safety first (these have bitten real TVs)

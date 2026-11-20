@@ -40,3 +40,6 @@ The in-app list (Settings, About, Licences) shows the same credits with full lic
 ## Name
 "shangOS" is the product name. The Android package id is `dev.madusha.shangos`.
 Source: https://github.com/madushas/shangos-launcher
+
+## Build-time only
+- `libs/annotation-jvm-*.jar`: `androidx.annotation` (Apache-2.0, Google). Used by the compiler for `@NonNull`, `@Nullable`, `@MainThread` and `@WorkerThread`; not packaged in the APK.

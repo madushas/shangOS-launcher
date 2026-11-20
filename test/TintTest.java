@@ -1,7 +1,6 @@
 package dev.madusha.shangos;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
@@ -54,11 +53,5 @@ public class TintTest {
     public void mixEndpoints() {
         assertEquals(0xFF102030, Tint.mix(0xFF102030, 0xFFFFFFFF, 0f));
         assertEquals(0xFFFFFFFF, Tint.mix(0xFF102030, 0xFFFFFFFF, 1f));
-    }
-
-    @Test
-    public void lightness() {
-        assertTrue(Tint.isLight(0xFFF5F5F0));
-        assertFalse(Tint.isLight(Tint.NEUTRAL));
     }
 }

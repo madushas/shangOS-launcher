@@ -1,7 +1,5 @@
 package dev.madusha.shangos;
-import android.content.Intent;
 
-import android.animation.*;
 import android.app.*;
 import android.content.*;
 import android.net.Uri;
@@ -24,9 +22,11 @@ public final class MainActivity extends Activity {
      */
     private static final long BACK_GUARD_MS = 1000;
 
+    /** How many apps get their pictures read before the first frame: Home's first row and a bit. */
+    private static final int PREFETCH = 6;
+
     private final ExecutorService loader = Executors.newSingleThreadExecutor();
     private final Handler handler = new Handler(Looper.getMainLooper());
-    private final ArrayList<Animator> pageAnimations = new ArrayList<>();
 
     // What the launcher knows and does, each in its own class (see docs/dev/ARCHITECTURE.md).
     private Prefs prefs;
@@ -37,6 +37,7 @@ public final class MainActivity extends Activity {
     private DaylightSync daylightSync;
     private AppRepo repo;
     private Overlays overlays;
+    private PageMotion pageMotion;
 
     // The views: a wallpaper, the tab bar and clock, and the page between them.
     private FrameLayout root, content;
@@ -72,6 +73,7 @@ public final class MainActivity extends Activity {
 
     /** The first page after the launcher starts rises in (AppPages.rise). */
     private boolean intro = true;
+
     private long backGuardUntil;
     private long lastInteraction = SystemClock.uptimeMillis();
 
@@ -99,7 +101,7 @@ public final class MainActivity extends Activity {
                         () -> SystemClock.uptimeMillis() - lastInteraction);
         homeScreen = new HomeScreen(this, overlays);
         cityPicker = new CityPicker(this, ui, prefs, overlays, screenHost);
-        nameEditor = new NameEditor(this, ui, prefs, overlays, screenHost, nameEditorHost);
+        nameEditor = new NameEditor(this, ui, prefs, overlays, screenHost, this::reload);
         wallpaperPicker =
                 new WallpaperPicker(this, ui, prefs, overlays, screenHost, wallpaperPickerHost);
         privacy =
@@ -108,6 +110,22 @@ public final class MainActivity extends Activity {
         licences = new LicensesScreen(this, ui, overlays, screenHost, () -> settings.aboutRow());
         about = new AboutScreen(this, ui, overlays, screenHost, privacy, licences);
         setup = new SetupGuide(this, ui, prefs, overlays, privacy, cityPicker, setupHost);
+        // The repository comes before the Settings rows: the Hidden apps row looks apps up in it.
+        HashSet<String> stock = new HashSet<>(Arrays.asList(HomeScreen.STOCK_HOMES));
+        stock.add(getPackageName());
+        lowRam = ((ActivityManager) getSystemService(ACTIVITY_SERVICE)).isLowRamDevice();
+        repo =
+                new AppRepo(
+                        this,
+                        stock,
+                        lowRam,
+                        new File(getCacheDir(), "apps.cache"),
+                        () -> {
+                            if (isDestroyed()) return;
+                            repo.prefetch(pages.visibleApps(false), PREFETCH);
+                            showPage(page, true);
+                            afterFirstLoad();
+                        });
         WeatherSettings weather = new WeatherSettings(prefs, overlays, cityPicker, this::reload);
         SettingsPages settingsPages =
                 new SettingsPages(
@@ -135,21 +153,6 @@ public final class MainActivity extends Activity {
         performance = new Performance(this, prefs);
         daylightSync =
                 new DaylightSync(this, new Daylight(this, prefs), prefs, handler, daylightHost);
-        HashSet<String> stock = new HashSet<>(Arrays.asList(HomeScreen.STOCK_HOMES));
-        stock.add(getPackageName());
-        lowRam = ((ActivityManager) getSystemService(ACTIVITY_SERVICE)).isLowRamDevice();
-        repo =
-                new AppRepo(
-                        this,
-                        stock,
-                        lowRam,
-                        new File(getCacheDir(), "apps.cache"),
-                        () -> {
-                            if (isDestroyed()) return;
-                            repo.prefetch(pages.visibleApps(false), 6);
-                            showPage(page, true);
-                            afterFirstLoad();
-                        });
         pages = new AppPages(this, ui, prefs, repo, hero, feedback, pagesHost);
         launcher =
                 new AppLauncher(
@@ -171,7 +174,7 @@ public final class MainActivity extends Activity {
         // is decided before the first frame.
         light = daylightSync.pale();
         // The previous launch's apps are already known: warm their pictures before the first frame.
-        if (repo.loaded()) repo.prefetch(pages.visibleApps(false), 6);
+        if (repo.loaded()) repo.prefetch(pages.visibleApps(false), PREFETCH);
         createShell();
         hideSystemBars();
         if (Build.VERSION.SDK_INT >= 33)
@@ -296,9 +299,8 @@ public final class MainActivity extends Activity {
     public void onTrimMemory(int level) {
         super.onTrimMemory(level);
         repo.trim(level);
-        if (level >= 40 && wallpaper != null)
-            wallpaper.release(); // 40 = background: the process may be killed, so give back the
-        // wallpaper's pictures
+        // In the background the process may be killed: give back the wallpaper's pictures too.
+        if (level >= AppRepo.TRIM_BACKGROUND && wallpaper != null) wallpaper.release();
     }
 
     /**
@@ -383,6 +385,7 @@ public final class MainActivity extends Activity {
         root.addView(chrome.shade(), new FrameLayout.LayoutParams(-1, -1));
         content = new FrameLayout(this);
         content.setClipChildren(false);
+        pageMotion = new PageMotion(ui, content);
         root.addView(content, new FrameLayout.LayoutParams(-1, -1));
         chrome.addTo(root);
         chrome.paint();
@@ -393,8 +396,7 @@ public final class MainActivity extends Activity {
     private void showPage(String next, boolean focus) {
         String previous = page;
         boolean transition = repo.loaded() && !previous.equals(next) && feedback.motion();
-        for (Animator animation : pageAnimations) animation.cancel();
-        pageAnimations.clear();
+        pageMotion.cancel();
         pages.clear();
         content.animate().cancel();
         content.setAlpha(1);
@@ -434,33 +436,15 @@ public final class MainActivity extends Activity {
     /** {@code quick}: browsing with the tab bar, so the page changes at once (150 ms). */
     private void animatePage(String previous, boolean transition, boolean quick) {
         if (!transition) return;
-        int before = previous.equals("home") ? 0 : previous.equals("apps") ? 1 : 2;
-        int after = page.equals("home") ? 0 : page.equals("apps") ? 1 : 2;
-        float direction = after >= before ? 1 : -1;
-        // Animate real element bounds rather than blending two full-screen textures.
-        // This preserves the soft page entrance within a small TV chip's fill-rate budget.
-        ArrayList<View> entering = new ArrayList<>();
-        for (int i = 0; i < content.getChildCount(); i++)
-            if (!(content.getChildAt(i) instanceof ScrollView)
-                    && !"scroll-frame".equals(content.getChildAt(i).getTag()))
-                entering.add(content.getChildAt(i));
-        if (!page.equals("settings")) entering.addAll(pages.entering());
-        for (int i = 0; i < entering.size(); i++) {
-            View view = entering.get(i);
-            float offset = ui.px(16) * direction;
-            view.setAlpha(0);
-            view.setTranslationX(offset);
-            ObjectAnimator fade = ObjectAnimator.ofFloat(view, View.ALPHA, 0, 1);
-            fade.setDuration(quick ? 150 : 270);
-            ObjectAnimator slide = ObjectAnimator.ofFloat(view, View.TRANSLATION_X, offset, 0);
-            slide.setDuration(quick ? 200 : 340);
-            AnimatorSet set = new AnimatorSet();
-            set.playTogether(fade, slide);
-            set.setInterpolator(Motion.EASE);
-            set.setStartDelay(Math.min(i, 5) * 10);
-            pageAnimations.add(set);
-            set.start();
-        }
+        int direction = tabIndex(page) >= tabIndex(previous) ? 1 : -1;
+        pageMotion.enter(
+                page.equals("settings") ? Collections.emptyList() : pages.entering(),
+                direction,
+                quick);
+    }
+
+    private static int tabIndex(String page) {
+        return page.equals("home") ? 0 : page.equals("apps") ? 1 : 2;
     }
 
     /** Settings again, with row {@code row} selected. */
@@ -730,13 +714,6 @@ public final class MainActivity extends Activity {
                 }
             };
 
-    private final NameEditor.Host nameEditorHost =
-            new NameEditor.Host() {
-                public void reload(int row) {
-                    MainActivity.this.reload(row);
-                }
-            };
-
     private final WallpaperPicker.Host wallpaperPickerHost =
             new WallpaperPicker.Host() {
                 public View content() {
@@ -765,30 +742,14 @@ public final class MainActivity extends Activity {
             };
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, android.content.Intent data) {
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == WallpaperPicker.REQUEST_BROWSE_PHOTO
                 && resultCode == RESULT_OK
                 && data != null
                 && data.getData() != null) {
-            final android.net.Uri uri = data.getData();
-            WidgetBoard.IO.execute(() -> {
-                try {
-                    java.io.File dest = PhotoStore.incoming(this);
-                    try (java.io.InputStream in =
-                                 getContentResolver().openInputStream(uri);
-                         java.io.FileOutputStream out =
-                                 new java.io.FileOutputStream(dest)) {
-                        if (in == null) return;
-                        byte[] buf = new byte[8192];
-                        int n;
-                        while ((n = in.read(buf)) > 0) out.write(buf, 0, n);
-                    }
-                    PhotoStore.accept(this);
-                } catch (java.io.IOException | RuntimeException e) {
-                    Dbg.d("browse_photo", "copy failed: " + e.getClass().getSimpleName());
-                }
-            });
+            final Uri uri = data.getData();
+            WidgetBoard.IO.execute(() -> PhotoStore.importFrom(getApplicationContext(), uri));
         }
     }
 

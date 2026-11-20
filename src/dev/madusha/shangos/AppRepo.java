@@ -11,6 +11,7 @@ import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.LruCache;
@@ -28,6 +29,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -49,6 +51,12 @@ final class AppRepo {
     }
 
     static final int ICON_PX = 120, BANNER_W = 320, BANNER_H = 180;
+
+    /**
+     * The trim level at which the process is a candidate to be killed. It is {@code
+     * ComponentCallbacks2.TRIM_MEMORY_BACKGROUND}, which API 34 deprecated without a replacement.
+     */
+    static final int TRIM_BACKGROUND = 40;
 
     /** Stands in for an icon that could not be loaded: draws as nothing. */
     private static final Bitmap BLANK = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888);
@@ -72,7 +80,7 @@ final class AppRepo {
      * Accent colour per package, read from the icon when it is first decoded: a few bytes per app,
      * kept when pictures are trimmed.
      */
-    private final Map<String, Integer> accents = new java.util.concurrent.ConcurrentHashMap<>();
+    private final Map<String, Integer> accents = new ConcurrentHashMap<>();
 
     private final Set<String> noBanner = Collections.synchronizedSet(new HashSet<>());
     private final Map<String, List<Runnable>> waiting = new HashMap<>();
@@ -148,7 +156,7 @@ final class AppRepo {
      * 33; before that it is the default.)
      */
     private void listen(IntentFilter filter) {
-        if (android.os.Build.VERSION.SDK_INT >= 33)
+        if (Build.VERSION.SDK_INT >= 33)
             context.registerReceiver(receiver, filter, Context.RECEIVER_NOT_EXPORTED);
         else context.registerReceiver(receiver, filter);
     }
@@ -243,8 +251,7 @@ final class AppRepo {
                             new App(
                                     pkg,
                                     info.loadLabel(pm).toString(),
-                                    new android.content.ComponentName(
-                                            pkg, info.activityInfo.name)));
+                                    new ComponentName(pkg, info.activityInfo.name)));
                 } catch (RuntimeException ignored) {
                     /* a package can disappear during an update */
                 }
@@ -449,7 +456,7 @@ final class AppRepo {
      * come back instantly).
      */
     void trim(int level) {
-        if (level >= 40) {
+        if (level >= TRIM_BACKGROUND) {
             icons.evictAll();
             banners.evictAll();
         } // the process is a candidate to be killed
