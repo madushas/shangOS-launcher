@@ -266,7 +266,9 @@ final class UpNextWidget extends Widget {
         face.setClipToOutline(true);
         face.setElevation(px(2));
         GradientDrawable bg =
-                round(item.allow ? (light() ? 0x14000000 : 0x1AFFFFFF) : 0xFF1C1C1E, 12);
+                round(
+                        item.allow ? (light() ? 0x14000000 : 0x1AFFFFFF) : 0xFF1C1C1E,
+                        Metrics.RADIUS);
         face.setBackground(bg);
         cell.addView(face, pos(cardW, cardH, 0, 0));
         if (item.allow) {
@@ -303,7 +305,7 @@ final class UpNextWidget extends Widget {
                 face.addView(fill, pos((cardW - 20) * item.progress, 3, 10, cardH - 10));
             }
         }
-        GradientDrawable rim = round(Color.TRANSPARENT, 12);
+        GradientDrawable rim = round(Color.TRANSPARENT, Metrics.RADIUS);
         rim.setStroke(px(1.2f), 0xF0FFFFFF);
         rim.setAlpha(0);
         face.setForeground(rim);

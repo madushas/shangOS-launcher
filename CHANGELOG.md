@@ -1,5 +1,51 @@
 # Changelog
 
+## 0.6.9: One look, readable on any screen
+- **Text follows the screen.** Every size is still a share of the screen's width, but two things were missing. Text now never drops below
+  14 px (`Metrics.MIN_TEXT_PX`; at 720p the smallest label is exactly 14, so a TV like the onn stick changes nothing, while a smaller picture, such as
+  854 px wide, no longer shrinks captions below readable). And when the TV's own *Display size* is set larger, or a screen simply has fewer dp
+  across than the 960 an Android TV draws (`Metrics.textScale`), text grows with it, up to 15%, and never shrinks below the design. It is 1.0
+  on an ordinary TV. Fixed-size boxes (a widget, a tile name) are sized for the normal text, which is why the growth stops at 15%.
+- **A tile's name follows the tile.** It was 13.5 on every layout size; it is now 11.5 on Compact, 13.5 on Comfortable (unchanged) and 15 on Cozy, in
+  half units, so names on wide tiles are not small and names on narrow ones still fit (`Metrics.labelSize`).
+- **A type scale.** `Metrics.DISPLAY`, `TITLE`, `HEADING`, `BODY`, `CAPTION` and `MICRO` (34, 22, 18, 15, 13, 11): new text uses these instead of a
+  number of its own. The dialogs and notices use them already; older screens keep their numbers until they are touched.
+- **Glass strength** (Settings, Motion and sound, under Frosted glass): Soft, Medium or Deep. It changes how strongly the veil covers the blurred
+  wallpaper (70%, 100% and 160% of the veil, never more opaque than 94% so a menu still shows some wallpaper), at no cost per frame and with no blur to redo, and shows at once. Medium is exactly the look of
+  earlier versions. On Light, where there is no frosted glass, the row is hidden with the others.
+- **The wallpaper picker answers focus like everything else.** Its two copies of the focus code are one method (`lift`) and its shadow follows the
+  tile shadows (so `shangos.layers=shadow` reaches it too). The look is unchanged: a picture grows and rises like a tile.
+- **Fixed (debug builds): `shangos.layers` did nothing on a cold start.** The switches were read only when the app was already running, so
+  `tools/jank-layers.sh` right after an install changed nothing and logged nothing. They are now also read when the app starts
+  (a second after it, because the tiles rise in for 0.7 s).
+- **Up Next cards now have the same corners as the app tiles.** Its cards (recent apps, and Watch Next programmes) were clipped and framed with a
+  radius of 12 while Home's tiles use 24, and the picture on an app card drew its own radius of 16, so the corners did not match and a
+  sliver of the dark card colour showed between the two curves. Cards, their focus ring and the picture all use `Metrics.RADIUS` now.
+- **One corner scale.** `Metrics` has `RADIUS` (tiles and card pictures), `CARD` (a widget, the tab bar, a panel, a text card: it was 22 in
+  some places, 24 in others and 26 in one) and `CONTROL` (a row or picker cell: 12 or 14). Widgets, the tab bar and capsule, dialogs, Settings, the name and city
+  panels, Privacy and Licences, and the widget editor use them. Small things inside a card (album art, the hero poster, switches) keep their own radius on purpose.
+- **`BATCH=1` for `tools/jank-ab.sh` and `tools/jank-layers.sh`.** The key loop starts one `input` process per key press, and 60 of them back to
+  back can use enough of a weak TV's CPU to make the launcher's frames late by themselves. `BATCH=1` sends the keys in one call. The default is
+  unchanged, so earlier numbers stay comparable.
+- **The website's results table puts shangOS first and lights the best number in each row** (marked in words for screen readers too, not only by
+  colour); the other launchers' numbers are in a quieter grey. The best is whoever is lowest, and anything within about 10% of it is lit too (the page
+  already calls smaller differences noise), so a row shangOS does not win lights the other launcher, and a near tie lights both.
+- **Less text under the website's results table.** The two sentences per launcher became one line (the memory saving, which is the headline;
+  start-up is in the table), and the fine print lost the repeated method details (they are in MEASURING.md).
+- **The website no longer shows "Janky frames while moving around".** That row came from the share of late frames in a key loop that drew about 20
+  frames per run, too few for the share to mean anything. `bench-json.py` also stops publishing `jank_pct` if `baseline.sh` still writes it. The
+  debug tools (`FrameProbe`, `tools/jank-layers.sh`, `tools/jank-ab.sh`) stay. `jank-layers.sh` and `jank-ab.sh` now walk Home at a human pace for
+  hundreds of frames (`LOOP=old` brings the old loop back) and `jank-layers.sh` checks for a debug build with `run-as`.
+- **Rows answer focus the same way.** `Overlays.row` (menus, pickers, buttons) and `valueRow` (Settings, Privacy, Setup) had different focus
+  fills, durations and curves, and only `valueRow` gave the focused row a shadow that popped in with no animation. Both now go through one
+  `lift` (a 2% grow, 300 ms, the tiles' curve), use the theme's focus colour, and have no shadow of their own. Their heights are named
+  (`Overlays.CHOICE_STRIDE`, `VALUE_H`) and the menu and city picker use them instead of a literal 46. The right-hand text of a value row is
+  70% white instead of 60%. A focused row's parents no longer clip its 2% grow in About and the notice.
+- **A notice is as tall as its message.** It was a fixed 440 x 260 box with a 140-tall text area, which clipped a long message and left a short one
+  floating. It is now a column (title, message at 15, Done on the right), 460 wide and as tall as it needs.
+- **About** reads a size larger (14 and 13 instead of 13 and 12) and a little brighter.
+- Tests: 108 (seven new: `MetricsTest` 4, `FrostTest` 2, `PrefsTest` 1). VERSION 0.6.9 (versionCode 23).
+
 ## 0.6.8: Smoother frames and honest Settings
 - **Full-screen wallpaper effects skip their long animations while focus is moving in a row.** Each D-pad move started a one-second slide of the
   whole wallpaper picture and its light, and a 700 ms cross-fade of up to four full-screen layers (stage light, dim). Moves less than 450 ms apart

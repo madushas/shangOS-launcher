@@ -27,6 +27,7 @@ report() {  # $1 = label, $2 = gfxinfo text
   local g="$2" frames janky since up secs fps
   frames=$(field 'Total frames rendered' "$g")
   if [ -z "$frames" ] || [ "$frames" = 0 ]; then echo "  $1: no frames drawn (the app was not on screen)"; return; fi
+  [ "$frames" -lt 100 ] && echo "  (this round drew only $frames frames: too few to trust the share late; raise WALKS)"
   janky=$(sed -nE 's/^ *Janky frames: *[0-9]+ \(([0-9.]+)%\).*/\1/p' <<<"$g" | head -1)
   up=$(field 'Uptime' "$g"); since=$(sed -nE 's/^ *Stats since: *([0-9]+)ns.*/\1/p' <<<"$g" | head -1)
   secs=$(awk -v u="${up:-0}" -v s="${since:-0}" 'BEGIN{printf "%.1f", (u - s/1e6)/1000}')
@@ -39,13 +40,26 @@ report() {  # $1 = label, $2 = gfxinfo text
     "$(field 'Number Slow issue draw commands' "$g")" "$(field 'Number Frame deadline missed' "$g")"
 }
 
+press() {  # $1 = key, $2 = how many. BATCH=1 sends them in ONE `input` call: every separate `input keyevent` starts a
+  # Java process, and on a weak TV 60 of them in a row use enough CPU to make the launcher's frames late by themselves.
+  if [ "${BATCH:-0}" = 1 ]; then sh "input keyevent $(yes "$1" | head -n "$2" | tr '\n' ' ')"
+  else sh "for i in \$(seq 1 $2); do input keyevent $1; done"; fi
+}
+
+walk() {  # One round of moving around Home like a person: 4 right, 4 left, WALKS times, one key every PACE seconds.
+  # The old loop (LOOP=old) sent 30 rights then 30 lefts back to back: after 4 moves the focus is at the end of the row, so
+  # most presses did nothing and a round drew only ~20 frames, too few for the share "late" to mean anything.
+  if [ "${LOOP:-walk}" = old ]; then press KEYCODE_DPAD_RIGHT 30; press KEYCODE_DPAD_LEFT 30; return; fi
+  sh "n=0; while [ \$n -lt ${WALKS:-5} ]; do for k in RIGHT RIGHT RIGHT RIGHT LEFT LEFT LEFT LEFT; do input keyevent KEYCODE_DPAD_\$k; sleep ${PACE:-0.6}; done; n=\$((n+1)); done"
+}
+
 run_variant() {  # $1 = name, $2 = animator scale
   echo "== $1 (animator_duration_scale $2)"
   sh settings put global animator_duration_scale "$2" >/dev/null
   for r in $(seq 1 "$ROUNDS"); do
     sh am start -W -n "$COMP" >/dev/null 2>&1; nap 3
     sh dumpsys gfxinfo "$PKG" reset >/dev/null
-    sh 'for i in $(seq 1 30); do input keyevent KEYCODE_DPAD_RIGHT; done; for i in $(seq 1 30); do input keyevent KEYCODE_DPAD_LEFT; done'; nap 1
+    walk; nap 1
     report "round $r" "$(sh dumpsys gfxinfo "$PKG")"
   done
 }

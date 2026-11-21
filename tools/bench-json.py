@@ -21,9 +21,12 @@ HIGHLIGHTS = {
     "first_frame_ms": ("launch_median_ms", 1, 0),
     "return_to_home_ms": ("return_ms_median", 1, 0),
     "cpu_idle_percent_of_core": ("cpu_idle_pct", 1, 1),
-    "janky_frames_percent": ("jank_pct", 1, 1),
     "apk_mb": ("apk_bytes", 1048576, 1),
 }
+
+
+# Measured by tools/baseline.sh but not published: the share of late frames came from too few frames to mean anything.
+NOT_PUBLISHED = {"jank_pct"}
 
 
 def parse(path):
@@ -37,7 +40,7 @@ def parse(path):
         if m:
             info[m.group(1)] = m.group(2).strip()
         m = re.match(r"METRIC (\w+)=(.*)$", line)
-        if m:
+        if m and m.group(1) not in NOT_PUBLISHED:
             try:
                 v = float(m.group(2))
                 metrics[m.group(1)] = int(v) if v.is_integer() else v
@@ -61,7 +64,7 @@ def result_of(path):
     return {
         "id": label, "name": base, "variant": variant or None, "package": info.get("package"), "version": info.get("version"),
         "measured_at": ts, "compile": comp.group(1) if comp else None, "metrics": metrics, "highlights": hl,
-        "complete": all(k in metrics for k in ("launch_median_ms", "mem_pss_kb", "cpu_idle_pct", "jank_pct")),
+        "complete": all(k in metrics for k in ("launch_median_ms", "mem_pss_kb", "cpu_idle_pct")),
     }, info
 
 

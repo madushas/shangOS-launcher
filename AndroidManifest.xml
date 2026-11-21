@@ -1,4 +1,4 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="dev.madusha.shangos" android:versionCode="22" android:versionName="0.6.8">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="dev.madusha.shangos" android:versionCode="23" android:versionName="0.6.9">
     <uses-permission android:name="android.permission.INTERNET" />
     <!-- INTERNET is removed by build.sh in the offline variant. It serves two optional features only: Weather (off by default) and remote Up Next posters. -->
     <!-- Up Next reads Android TV's Continue watching list. Read only. -->

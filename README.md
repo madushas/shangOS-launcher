@@ -3,7 +3,7 @@
 A fast, private, modern home screen for Android TV. Plain Java, **no third-party libraries in the app** (the one jar in `libs/` is annotations for the compiler and is not packaged), no telemetry, no
 accounts, no ads. Source: https://github.com/madushas/shangos-launcher. Forked from [Luma TV](https://github.com/0xProbabillity/luma-tv) (MIT); see `NOTICE.md`.
 
-**Status: version 0.6.8 (see `CHANGELOG.md` for what each version changed). Built, unit-tested and linted; field-tested on one TV stick.**
+**Status: version 0.6.9 (see `CHANGELOG.md` for what each version changed). Built, unit-tested and linted; field-tested on one TV stick.**
 
 Website and setup guide: https://shangos.madusha.dev (source in `docs/`). Releases are signed; the fingerprint is on each release and in the app.
 

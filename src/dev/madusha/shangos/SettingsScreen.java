@@ -183,7 +183,7 @@ final class SettingsScreen {
             content.addView(item, ui.pos(RAIL_W, ITEM_H, RAIL_X, TOP + g * (ITEM_H + ITEM_GAP)));
         }
         FrameLayout panel = new FrameLayout(activity);
-        panel.setBackground(ui.glass(panel, host.light(), 24));
+        panel.setBackground(ui.glass(panel, host.light(), Metrics.CARD));
         content.addView(panel, ui.pos(PANEL_W, PANEL_H, PANEL_X, TOP));
         title = ui.text("", 32, ink(0xFF), "sans-serif-medium");
         panel.addView(title, ui.pos(540, 40, 24, 20));

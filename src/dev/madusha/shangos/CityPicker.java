@@ -83,13 +83,14 @@ final class CityPicker {
                         keyboard(false);
                     });
             FrameLayout panel = new FrameLayout(activity);
-            panel.setBackground(ui.shape(0xF51C1C1E, 24));
+            panel.setBackground(ui.shape(0xF51C1C1E, Metrics.CARD));
             panel.setElevation(ui.px(24));
             panel.setClipChildren(false);
             // Near the top, not centred: the TV's keyboard covers the lower part of the screen,
             // and the window does not pan (adjustNothing in the manifest).
             FrameLayout.LayoutParams lp =
-                    new FrameLayout.LayoutParams(ui.px(520), ui.px(152 + (SHOWN + 1) * 46 + 14));
+                    new FrameLayout.LayoutParams(
+                            ui.px(520), ui.px(152 + (SHOWN + 1) * Overlays.CHOICE_STRIDE + 14));
             lp.gravity = Gravity.TOP | Gravity.CENTER_HORIZONTAL;
             lp.topMargin = ui.px(28);
             overlay.addView(panel, lp);
@@ -117,7 +118,7 @@ final class CityPicker {
                             | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
             Runnable ring =
                     () -> {
-                        GradientDrawable bg = ui.shape(0x1FFFFFFF, 12);
+                        GradientDrawable bg = ui.shape(0x1FFFFFFF, Metrics.CONTROL);
                         if (field.hasFocus()) bg.setStroke(ui.px(1.5f), Color.WHITE);
                         field.setBackground(bg);
                     };
@@ -151,7 +152,7 @@ final class CityPicker {
             list.setOrientation(LinearLayout.VERTICAL);
             list.setClipChildren(false);
             list.setClipToPadding(false);
-            panel.addView(list, ui.pos(488, (SHOWN + 1) * 46, 16, 152));
+            panel.addView(list, ui.pos(488, (SHOWN + 1) * Overlays.CHOICE_STRIDE, 16, 152));
             rows();
             // The list (about 800 KB) is read once, off the main thread.
             WidgetBoard.IO.execute(

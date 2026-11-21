@@ -148,21 +148,7 @@ final class WallpaperPicker {
                                 ui.px(f ? 2 : 1.5f),
                                 f ? Color.WHITE : index == saved ? 0xCCFFFFFF : 0x33FFFFFF);
                         cell.setForeground(r);
-                        cell.setElevation(ui.px(f ? 18 : 2));
-                        cell.animate().cancel();
-                        float s = f ? 1.16f : 1;
-                        if (screens.motion())
-                            cell.animate()
-                                    .scaleX(s)
-                                    .scaleY(s)
-                                    .translationY(f ? -ui.px(4) : 0)
-                                    .setDuration(420)
-                                    .setInterpolator(Motion.TILE)
-                                    .start();
-                        else {
-                            cell.setScaleX(s);
-                            cell.setScaleY(s);
-                        }
+                        lift(cell, f);
                         if (f) {
                             name.setText(Wallpaper.NAMES[index]);
                             credit.setText(Wallpaper.AUTHORS[index]);
@@ -210,21 +196,7 @@ final class WallpaperPicker {
                     GradientDrawable r = ui.shape(Color.TRANSPARENT, 12);
                     r.setStroke(ui.px(f ? 2 : 1.5f), f ? Color.WHITE : 0x33FFFFFF);
                     browseCell.setForeground(r);
-                    browseCell.setElevation(ui.px(f ? 18 : 2));
-                    browseCell.animate().cancel();
-                    float s = f ? 1.16f : 1;
-                    if (screens.motion())
-                        browseCell.animate()
-                                .scaleX(s)
-                                .scaleY(s)
-                                .translationY(f ? -ui.px(4) : 0)
-                                .setDuration(420)
-                                .setInterpolator(Motion.TILE)
-                                .start();
-                    else {
-                        browseCell.setScaleX(s);
-                        browseCell.setScaleY(s);
-                    }
+                    lift(browseCell, f);
                     if (f) {
                         name.setText("Custom photo");
                         credit.setText("Browse device files or USB storage");
@@ -244,5 +216,27 @@ final class WallpaperPicker {
         row.addView(browseCell, browseLp);
 
         screens.post(() -> cells.get(saved).requestFocus());
+    }
+
+    /**
+     * How a picture answers focus, the same for every cell: it rises and grows like an app tile,
+     * and its shadow goes with the tile shadows (see {@link Layers#elevation}).
+     */
+    private void lift(android.view.View cell, boolean focused) {
+        cell.setElevation(Layers.elevation(ui.px(focused ? 18 : 2)));
+        cell.animate().cancel();
+        float s = focused ? 1.16f : 1;
+        if (screens.motion())
+            cell.animate()
+                    .scaleX(s)
+                    .scaleY(s)
+                    .translationY(focused ? -ui.px(4) : 0)
+                    .setDuration(420)
+                    .setInterpolator(Motion.TILE)
+                    .start();
+        else {
+            cell.setScaleX(s);
+            cell.setScaleY(s);
+        }
     }
 }

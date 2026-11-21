@@ -105,7 +105,7 @@ final class Chrome {
         bar.addView(indicator, new FrameLayout.LayoutParams(0, ui.px(40), Gravity.CENTER_VERTICAL));
         bar.addView(navigation, new FrameLayout.LayoutParams(-2, -1));
         bar.setPadding(ui.px(4), ui.px(2), ui.px(4), ui.px(2));
-        bar.setBackground(ui.glass(bar, false, 22));
+        bar.setBackground(ui.glass(bar, false, Metrics.CARD));
         status = new StatusIcons(context, handler, Prefs.of(context));
         capsule = new LinearLayout(context);
         capsule.setOrientation(LinearLayout.HORIZONTAL);
@@ -217,8 +217,8 @@ final class Chrome {
     /** Colours of the tab bar, clock and shade for the current wallpaper. */
     void paint() {
         boolean light = host.light();
-        bar.setBackground(ui.glass(bar, light, 22));
-        capsule.setBackground(ui.glass(capsule, light, 24));
+        bar.setBackground(ui.glass(bar, light, Metrics.CARD));
+        capsule.setBackground(ui.glass(capsule, light, Metrics.CARD));
         clock.setTextColor(Theme.ink(light, 0xF2));
         status.setInk(Theme.ink(light, 0xE6));
         ui.shadow(clock, 6, light);

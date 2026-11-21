@@ -52,7 +52,7 @@ final class WidgetEditor {
         FrameLayout o = overlays.open(0xB3000000);
         overlays.onCancel(() -> host.backToSettings(settingsRow));
         FrameLayout panel = new FrameLayout(activity);
-        panel.setBackground(ui.shape(0xF51C1C1E, 26));
+        panel.setBackground(ui.shape(0xF51C1C1E, Metrics.CARD));
         panel.setElevation(ui.px(24));
         panel.setClipChildren(false);
         float h = Math.max(440, 98 + order.size() * 61 + 20); // grows with the number of widgets
@@ -148,7 +148,7 @@ final class WidgetEditor {
                             m = id.equals(moving),
                             lit = f || m,
                             on = !off.contains(id) && available(id);
-                    row.setBackground(ui.shape(lit ? 0xFAFFFFFF : 0x14FFFFFF, 14));
+                    row.setBackground(ui.shape(lit ? 0xFAFFFFFF : 0x14FFFFFF, Metrics.CONTROL));
                     name.setTextColor(lit ? 0xFF111827 : Color.WHITE);
                     about.setTextColor(lit ? 0xFF5B6472 : 0x99FFFFFF);
                     disc.setBackground(ui.oval(on ? 0xFF0A84FF : lit ? 0x1A000000 : 0x26FFFFFF));

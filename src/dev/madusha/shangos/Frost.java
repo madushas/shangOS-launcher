@@ -13,6 +13,7 @@ import android.view.View;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.function.IntSupplier;
 
 /**
  * Frosted glass without a blur at draw time. The wallpaper is blurred once into a tiny picture
@@ -28,9 +29,44 @@ final class Frost {
     /** Width of the blurred picture; its height follows the screen. */
     static final int WIDTH = 96;
 
+    /** How much the veil over the frosted picture says: Soft shows more wallpaper, Deep less. */
+    static final int SOFT = Prefs.GLASS_SOFT,
+            MEDIUM = Prefs.GLASS_MEDIUM,
+            DEEP = Prefs.GLASS_DEEP;
+
+    static final String[] NAMES = {"Soft", "Medium", "Deep"};
+
+    /** The veil's opacity at each strength, relative to Medium (the look before 0.6.9). */
+    private static final float[] VEIL = {.7f, 1f, 1.6f};
+
     private volatile Bitmap bitmap;
     private volatile boolean enabled;
+    private final IntSupplier strength;
     private final ArrayList<WeakReference<Panel>> panels = new ArrayList<>();
+
+    Frost() {
+        this(() -> MEDIUM);
+    }
+
+    /** {@code strength} is read each time a panel draws, so a change shows at once. */
+    Frost(IntSupplier strength) {
+        this.strength = strength;
+    }
+
+    /** Deep never makes a veil more opaque than this, so some wallpaper always shows through. */
+    private static final int MOST_OPAQUE = 0xF0;
+
+    /**
+     * {@code veil} with its opacity set for {@code strength} (SOFT, MEDIUM or DEEP; anything else
+     * is Medium). The colour is kept, and a veil that was already more opaque than the cap keeps
+     * its own opacity. Pure, so it is unit tested.
+     */
+    static int veil(int veil, int strength) {
+        float k = strength >= SOFT && strength <= DEEP ? VEIL[strength] : 1f;
+        int own = veil >>> 24;
+        int alpha = Math.min(Math.max(MOST_OPAQUE, own), Math.round(own * k));
+        return (alpha << 24) | (veil & 0xFFFFFF);
+    }
 
     /** True when panels should draw the frosted picture. */
     boolean ready() {
@@ -44,8 +80,8 @@ final class Frost {
         refresh();
     }
 
+    /** Always repaints, so that a new strength shows even when frost was on already. */
     void setEnabled(boolean value) {
-        if (enabled == value) return;
         enabled = value;
         refresh();
     }
@@ -176,7 +212,7 @@ final class Frost {
                     canvas.save();
                     canvas.clipPath(path);
                     canvas.drawBitmap(picture, source, b, this.picture);
-                    fill.setColor(veil);
+                    fill.setColor(veil(veil, strength.getAsInt()));
                     canvas.drawPath(path, fill);
                     canvas.restore();
                     canvas.drawPath(path, edge);

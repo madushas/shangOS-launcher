@@ -37,6 +37,15 @@ final class Overlays {
         View currentFocus();
     }
 
+    /** A choice row (menus, pickers, buttons): its height and the gap under it, in design units. */
+    static final float CHOICE_H = 42, CHOICE_GAP = 4, CHOICE_STRIDE = CHOICE_H + CHOICE_GAP;
+
+    /** A value row (Settings, Privacy, Setup lists). */
+    static final float VALUE_H = 44, VALUE_GAP = 6;
+
+    /** The right-hand text of a value row; bright enough to read from the sofa. */
+    private static final int DETAIL = 0xB3FFFFFF;
+
     private final Host host;
     private final Ui ui;
     private FrameLayout overlay;
@@ -151,9 +160,28 @@ final class Overlays {
         return overlay;
     }
 
+    /**
+     * The one way every row answers focus: it grows a little, with the same curve as the tiles. A
+     * row has no shadow of its own (the white fill is what says "here"), so nothing pops in.
+     */
+    private void lift(View row, boolean focused) {
+        row.animate().cancel();
+        if (host.motion())
+            row.animate()
+                    .scaleX(focused ? 1.02f : 1)
+                    .scaleY(focused ? 1.02f : 1)
+                    .setDuration(300)
+                    .setInterpolator(Motion.TILE)
+                    .start();
+        else {
+            row.setScaleX(1);
+            row.setScaleY(1);
+        }
+    }
+
     /** A focusable row for a dark panel. */
     TextView row(LinearLayout list, String label, boolean checked, Runnable action) {
-        TextView row = ui.line(label, 15, Color.WHITE, "sans-serif-medium");
+        TextView row = ui.line(label, Metrics.BODY, Color.WHITE, "sans-serif-medium");
         row.setGravity(Gravity.CENTER_VERTICAL);
         row.setPadding(ui.px(18), 0, ui.px(18), 0);
         row.setFocusable(true);
@@ -162,7 +190,7 @@ final class Overlays {
         Runnable paint =
                 () -> {
                     boolean f = row.hasFocus();
-                    row.setBackground(f ? ui.shape(0xF7FFFFFF, 12) : null);
+                    row.setBackground(f ? ui.shape(Theme.PANEL_FOCUS, Metrics.CONTROL) : null);
                     row.setTextColor(f ? Theme.PANEL_FOCUS_INK : Color.WHITE);
                     row.setText((checked ? "✓  " : "") + label);
                     row.setContentDescription(label + (checked ? ", selected" : ""));
@@ -171,14 +199,7 @@ final class Overlays {
         row.setOnFocusChangeListener(
                 (v, f) -> {
                     paint.run();
-                    row.animate().cancel();
-                    if (host.motion())
-                        row.animate()
-                                .scaleX(f ? 1.02f : 1)
-                                .scaleY(f ? 1.02f : 1)
-                                .setDuration(240)
-                                .setInterpolator(Motion.EASE)
-                                .start();
+                    lift(row, f);
                     if (f) host.step(list.indexOfChild(row));
                 });
         row.setOnClickListener(
@@ -186,8 +207,8 @@ final class Overlays {
                     host.click();
                     action.run();
                 });
-        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-1, ui.px(42));
-        lp.bottomMargin = ui.px(4);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-1, ui.px(CHOICE_H));
+        lp.bottomMargin = ui.px(CHOICE_GAP);
         list.addView(row, lp);
         return row;
     }
@@ -207,17 +228,20 @@ final class Overlays {
         row.setFocusable(true);
         row.setFocusableInTouchMode(true);
         row.setSoundEffectsEnabled(false);
-        TextView name = ui.line(title, 15, Color.WHITE, "sans-serif-medium");
+        TextView name = ui.line(title, Metrics.BODY, Color.WHITE, "sans-serif-medium");
         row.addView(name, ui.pos(240, 20, 18, 12));
-        TextView detail = ui.line(value.get(), 14, 0x99FFFFFF, "sans-serif");
+        TextView detail = ui.line(value.get(), 14, DETAIL, "sans-serif");
         detail.setGravity(Gravity.RIGHT);
         row.addView(detail, ui.pos(210, 20, 268, 12));
         Runnable paint =
                 () -> {
                     boolean focused = row.hasFocus();
-                    row.setBackground(ui.shape(focused ? Theme.PANEL_FOCUS : Theme.PANEL_ROW, 14));
+                    row.setBackground(
+                            ui.shape(
+                                    focused ? Theme.PANEL_FOCUS : Theme.PANEL_ROW,
+                                    Metrics.CONTROL));
                     name.setTextColor(focused ? Theme.PANEL_FOCUS_INK : Color.WHITE);
-                    detail.setTextColor(focused ? 0xFF5B6472 : 0x99FFFFFF);
+                    detail.setTextColor(focused ? 0xFF5B6472 : DETAIL);
                     detail.setText(value.get());
                     row.setContentDescription(title + ", " + value.get());
                 };
@@ -226,19 +250,7 @@ final class Overlays {
         row.setOnFocusChangeListener(
                 (v, focused) -> {
                     paint.run();
-                    row.animate().cancel();
-                    if (host.motion())
-                        row.animate()
-                                .scaleX(focused ? 1.02f : 1)
-                                .scaleY(focused ? 1.02f : 1)
-                                .setDuration(300)
-                                .setInterpolator(Motion.TILE)
-                                .start();
-                    else {
-                        row.setScaleX(1);
-                        row.setScaleY(1);
-                    }
-                    row.setElevation(ui.px(focused ? 10 : 0));
+                    lift(row, focused);
                     if (focused) {
                         if (onFocus != null) onFocus.run();
                         host.step(list.indexOfChild(row));
@@ -250,8 +262,8 @@ final class Overlays {
                     action.run();
                     paint.run();
                 });
-        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-1, ui.px(44));
-        lp.bottomMargin = ui.px(6);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-1, ui.px(VALUE_H));
+        lp.bottomMargin = ui.px(VALUE_GAP);
         list.addView(row, lp);
         return row;
     }
@@ -261,12 +273,15 @@ final class Overlays {
         if (row != null && row.getTag() instanceof Runnable) ((Runnable) row.getTag()).run();
     }
 
-    /** A dark glass panel centred on the overlay. */
+    /** A dark glass panel centred on the overlay; a {@code height} of 0 fits its content. */
     FrameLayout panel(FrameLayout overlay, float width, float height) {
         FrameLayout panel = new FrameLayout(overlay.getContext());
-        panel.setBackground(ui.darkGlass(panel, 24));
+        panel.setBackground(ui.darkGlass(panel, Metrics.CARD));
         panel.setElevation(ui.px(24));
-        FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(ui.px(width), ui.px(height));
+        FrameLayout.LayoutParams lp =
+                new FrameLayout.LayoutParams(
+                        ui.px(width),
+                        height > 0 ? ui.px(height) : ViewGroup.LayoutParams.WRAP_CONTENT);
         lp.gravity = Gravity.CENTER;
         overlay.addView(panel, lp);
         return panel;
@@ -276,7 +291,7 @@ final class Overlays {
     void menu(String title, String[] items, int checked, IntConsumer pick) {
         FrameLayout o = open(Theme.SCRIM);
         int rows = Math.min(items.length, 7);
-        float h = 74 + rows * 46 + 18;
+        float h = 74 + rows * CHOICE_STRIDE + 18;
         FrameLayout panel = panel(o, 400, h);
         panel.addView(
                 ui.line(title, 20, Color.WHITE, "sans-serif-medium"), ui.pos(352, 28, 24, 24));
@@ -323,18 +338,27 @@ final class Overlays {
                         });
     }
 
-    /** A message with a Done button. */
+    /** A message with a Done button; the panel is as tall as the message needs. */
     void notice(String title, String message) {
         FrameLayout o = open(Theme.SCRIM);
-        FrameLayout panel = panel(o, 440, 260);
-        panel.addView(
-                ui.text(title, 22, Color.WHITE, "sans-serif-medium"), ui.pos(392, 30, 24, 26));
-        TextView body = ui.text(message, 14, 0xC7FFFFFF, "sans-serif");
+        FrameLayout panel = panel(o, 460, 0);
+        LinearLayout column = new LinearLayout(o.getContext());
+        column.setOrientation(LinearLayout.VERTICAL);
+        column.setPadding(ui.px(28), ui.px(26), ui.px(28), ui.px(18));
+        panel.addView(column, new FrameLayout.LayoutParams(-1, -2));
+        column.addView(ui.text(title, Metrics.TITLE, Color.WHITE, "sans-serif-medium"));
+        TextView body = ui.text(message, Metrics.BODY, 0xD9FFFFFF, "sans-serif");
         body.setLineSpacing(ui.px(5), 1);
-        panel.addView(body, ui.pos(392, 140, 24, 66));
+        LinearLayout.LayoutParams bodyLp = new LinearLayout.LayoutParams(-1, -2);
+        bodyLp.topMargin = ui.px(12);
+        bodyLp.bottomMargin = ui.px(22);
+        column.addView(body, bodyLp);
         LinearLayout list = new LinearLayout(o.getContext());
         list.setOrientation(LinearLayout.VERTICAL);
-        panel.addView(list, ui.pos(140, 42, 286, 200));
+        list.setClipChildren(false);
+        LinearLayout.LayoutParams listLp = new LinearLayout.LayoutParams(ui.px(140), -2);
+        listLp.gravity = Gravity.RIGHT;
+        column.addView(list, listLp);
         TextView done = row(list, "Done", false, () -> close(false));
         done.setGravity(Gravity.CENTER);
         host.root().post(done::requestFocus);

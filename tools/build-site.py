@@ -50,8 +50,21 @@ def load_bench():
 BENCH_ROWS = [  # (highlight key, label, unit); lower is better in every row
     ("memory_idle_mb", "Memory in use, idle on Home", "MB"), ("memory_after_returns_mb", "Memory after 10 trips back to Home", "MB"),
     ("first_frame_ms", "Time to first frame after a restart (median of 8)", "ms"), ("return_to_home_ms", "Trip back to Home", "ms"),
-    ("cpu_idle_percent_of_core", "Processor use while idle on Home", "% of one core"), ("janky_frames_percent", "Janky frames while moving around", "%"),
+    ("cpu_idle_percent_of_core", "Processor use while idle on Home", "% of one core"),
 ]
+
+
+def bench_cell(value, best, unit):
+    """One number of the table. The best in its row is lit, and so is anything level with it (within the 10% the page itself calls noise,
+    or 0.15 of the unit, which is rounding for a figure like 0.1 %); the others sit back. The mark is in words too, not only in colour."""
+    if value is None:
+        return '<span class="bench-other">not measured</span>'
+    text = f"{value:,} {unit}"
+    if value == best:
+        return f'<strong class="bench-best">{text}<span class="sr-only"> (best)</span></strong>'
+    if value - best < max(best * 0.10, 0.15):
+        return f'<strong class="bench-best">{text}<span class="sr-only"> (level with the best)</span></strong>'
+    return f'<span class="bench-other">{text}</span>'
 
 
 def bench_section():
@@ -59,38 +72,38 @@ def bench_section():
     b = load_bench()
     if not b or not b.get("results"):
         return ""
-    res = b["results"]
+    res = sorted(b["results"], key=lambda r: r["name"] != "shangOS")  # shangOS first; the others keep their order
     cols = [f'{r["name"]} {r["version"]}' + (f' ({r["variant"]})' if r.get("variant") else "") for r in res]
     rows = []
     for k, label, unit in BENCH_ROWS:
         if not any(k in r["highlights"] for r in res):
             continue
-        rows.append([label] + [(f'{r["highlights"][k]:,} {unit}' if k in r["highlights"] else "not measured") for r in res])
+        best = min(r["highlights"][k] for r in res if k in r["highlights"])  # lower is better in every row
+        rows.append([label] + [bench_cell(r["highlights"].get(k), best, unit) for r in res])
     mine = next((r for r in res if r["name"] == "shangOS"), None)
-    notes = []
+    note = "Numbers from one small TV stick."
     if mine:
+        a = mine["highlights"].get("memory_after_returns_mb")
+        lines = []
         for o in (r for r in res if r is not mine):
-            a, c = mine["highlights"].get("memory_after_returns_mb"), o["highlights"].get("memory_after_returns_mb")
-            if a and c:
-                pct = round(abs(c - a) / c * 100)
-                notes.append(f'After ten trips back to Home, {mine["name"]} {mine["version"]} held {a:g}&nbsp;MB and {o["name"]} {o["version"]} held {c:g}&nbsp;MB ({pct}% {"less" if a < c else "more"}).')
-            a, c = mine["highlights"].get("first_frame_ms"), o["highlights"].get("first_frame_ms")
-            if a and c:
-                notes.append("Start-up time was about the same." if abs(a - c) / max(a, c) < 0.1 else f'Start-up took {a:g}&nbsp;ms against {c:g}&nbsp;ms.')
+            c = o["highlights"].get("memory_after_returns_mb")
+            if a and c and a < c:
+                lines.append(f'{round((c - a) / c * 100)}% less than {o["name"]} ({c:g}&nbsp;MB)')
+        if a and lines:
+            note = f'After ten trips back to Home, {mine["name"]} holds {a:g}&nbsp;MB: ' + " and ".join(lines) + "."
     stale = [f'{r["name"]} {r["version"]}' for r in res if r["name"] == "shangOS" and r["version"] != RELEASED]
     stale += [f'Luma TV {r["version"]}' for r in res if r["name"] == "Luma TV" and r["version"] != LUMA_LATEST]
     day = (b.get("generated") or "")[:10]
     dev = b["device"]
     ram = f'{dev["memory_kb"] / 1048576:.1f}&nbsp;GB RAM, ' if dev.get("memory_kb") else ""
-    fine = (f'Measured {e(day)} on one TV: {e(dev["description"])} ({ram}{e(dev.get("display", ""))}). '
-            + (f'The current release is {RELEASED}; {e(" and ".join(stale))} {"was" if len(stale) == 1 else "were"} measured, so the newer releases have not been measured yet. ' if stale else "")
-            + f'One TV on one day is a guide, not a promise; differences under about 10% are noise. Memory is Android&rsquo;s own figure (PSS), in MB of 1,024&nbsp;kB. The method is <a href="{REPO}/blob/main/docs/MEASURING.md" rel="noopener">written down</a>, '
-            f'the raw numbers are in <a href="/data/bench.json">bench.json</a>, and <code>tools/bench.sh</code> measures your own TV.')
+    fine = (f'Measured {e(day)} on one TV: {e(dev["description"])} ({ram}{e(dev.get("display", ""))}). Differences under about 10% are noise; memory is Android\'s PSS figure. '
+            + (f'{e(" and ".join(stale))} {"was" if len(stale) == 1 else "were"} measured; newer releases have not been. ' if stale else "")
+            + f'<a href="{REPO}/blob/main/docs/MEASURING.md" rel="noopener">Method</a> &middot; <a href="/data/bench.json">raw numbers</a> &middot; <code>tools/bench.sh</code> measures your own TV.')
     return f"""
 <section class="section section--sunk" aria-labelledby="num-h">
   <div class="wrap">
-    <div class="section__head"><span class="kicker">Measured</span><h2 id="num-h">How light is it?</h2><p>{" ".join(notes) or "Numbers from one small TV stick."}</p></div>
-    {table(["Measure"] + [e(c) for c in cols], rows, caption="Lower is better in every row")}
+    <div class="section__head"><span class="kicker">Measured</span><h2 id="num-h">How light is it?</h2><p>{note}</p></div>
+    {table(["Measure"] + [e(c) for c in cols], rows, caption="Lower is better in every row. The best in each row is highlighted, with anything within about 10% of it")}
     <p class="fine" style="margin-top:var(--s-4)">{fine}</p>
   </div>
 </section>"""
@@ -431,7 +444,7 @@ def page_guide():
 <p>Home opens with a greeting (set your name in Settings), the date, and your wallpaper. The row of app tiles sits below. The focused tile glows, the wallpaper tilts slightly as you move, and pressing OK opens the app out of its tile. The light behind the row takes the colour of the focused app (Settings, Room lighting turns it off).{nx_043}</p>
 <p>The line under each app&rsquo;s name says when you last opened it. With Continue watching allowed in Privacy, it can say what you were in the middle of instead (&ldquo;Continue: &hellip; &middot; 18 min left&rdquo;), with the programme&rsquo;s artwork faded in behind the greeting.{nx_043}{nx_050} When you open an app and come back, focus is on that app&rsquo;s tile again.{nx_042}</p>
 <p>The page switcher at the top moves between Home, Apps and Settings. The clock can be hidden. A small lock appears beside it while a VPN is on, and an amber crossed Wi-Fi when the TV is offline.{nx_050}</p>
-<p>Bars, cards and menus are frosted glass: they show a blurred copy of your wallpaper behind them (Settings, Frosted glass).{nx_050} After 20 quiet seconds the tab bar and clock fade back so the wallpaper has the room, and any key brings them back (Settings, Calm mode).{nx_050}</p>"""))
+<p>Bars, cards and menus are frosted glass: they show a blurred copy of your wallpaper behind them (Settings, Motion and sound, Frosted glass).{nx_050} After 20 quiet seconds the tab bar and clock fade back so the wallpaper has the room, and any key brings them back (Settings, Calm mode).{nx_050}</p>"""))
     s.append(("apps", "The Apps page", f"""
 <p>Every installed app, including the ones the TV hides from its own list. The order is shared with the Home row. Hold OK on a tile to open its menu:</p>
 <ul><li><strong>Open</strong> and <strong>Move to first position</strong>.</li><li><strong>Hide from Home</strong> keeps the app in Apps and takes it off the Home row.</li><li><strong>App info</strong> opens Android&rsquo;s page for the app.</li><li><strong>Uninstall</strong> asks Android to remove an app you installed; Android asks you to confirm. It is not offered for the TV&rsquo;s own apps.{nx_045}</li></ul>
@@ -458,7 +471,8 @@ def page_guide():
         ["Motion and sound: Room lighting", "The coloured light behind the app row (from 0.4.3)."],
         ["Appearance: Layout size", "How many apps share a row: Compact (6), Comfortable (5) or Cozy (4) (from 0.6.3)."],
         ["Appearance: Status icons", "The network, VPN and muted icons beside the clock: Always, or Only problems (from 0.6.3)."],
-        ["Appearance: Frosted glass", "Bars, cards and menus show a blurred copy of the wallpaper behind them. Off with the Light performance level (from 0.5.0)."],
+        ["Motion and sound: Frosted glass", "Bars, cards and menus show a blurred copy of the wallpaper behind them. Off with the Light performance level (from 0.5.0)."],
+        ["Motion and sound: Glass strength", "How much of the wallpaper shows through the glass: Soft, Medium or Deep (from 0.6.9)."],
         ["Motion and sound: Calm mode", "The tab bar and clock fade back after 20 quiet seconds (from 0.5.0)."],
         ["Privacy", "Switches for weather and posters, a runtime Offline mode, and the signing fingerprint of this build."],
         ["System: Setup guide", "Shows the first-run walkthrough again, with a QR code for the setup page."],

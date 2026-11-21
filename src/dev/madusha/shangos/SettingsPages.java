@@ -220,6 +220,30 @@ final class SettingsPages {
                                             "Frosted glass",
                                             "Bars, cards and menus show a blurred copy of the"
                                                     + " wallpaper behind them.")));
+            final int strengthRow = controls.size();
+            controls.add(
+                    kit.option(
+                            list,
+                            "Glass strength",
+                            () -> Frost.NAMES[prefs.glassStrength()],
+                            null,
+                            () ->
+                                    overlays.menu(
+                                            "Glass strength",
+                                            Frost.NAMES,
+                                            prefs.glassStrength(),
+                                            choice -> {
+                                                prefs.setGlassStrength(choice);
+                                                host.glassChanged();
+                                                host.reload(strengthRow);
+                                            }),
+                            () ->
+                                    kit.preview(
+                                            Wallpaper.THUMBS[kit.style()],
+                                            "Glass strength",
+                                            "How much of the wallpaper shows through the glass:"
+                                                    + " Soft shows more, Deep less. Needs Frosted"
+                                                    + " glass to be on.")));
         }
         controls.add(
                 kit.option(

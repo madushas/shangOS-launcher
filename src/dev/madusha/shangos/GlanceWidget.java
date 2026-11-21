@@ -51,7 +51,7 @@ final class GlanceWidget extends Widget {
                     // The same highlight as the weather card: translucent with an edge, so the text
                     // keeps its colour.
                     android.graphics.drawable.GradientDrawable g =
-                            ui.shape(light() ? 0xF2FFFFFF : 0x38FFFFFF, 22);
+                            ui.shape(light() ? 0xF2FFFFFF : 0x38FFFFFF, Metrics.CARD);
                     g.setStroke(Math.max(1, ui.px(1.2f)), light() ? 0x33000000 : 0xB3FFFFFF);
                     setBackground(g);
                 });

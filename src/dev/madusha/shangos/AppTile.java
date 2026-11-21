@@ -109,7 +109,12 @@ final class AppTile extends FrameLayout {
         rim.setAlpha(0);
         face.setForeground(rim);
         addView(face, ui.pos(Metrics.tileW, Metrics.tileH, 0, 0));
-        label = ui.text(app.label, 13.5f, Theme.ink(host.light(), 0xFF), "sans-serif-medium");
+        label =
+                ui.text(
+                        app.label,
+                        Metrics.labelSize(),
+                        Theme.ink(host.light(), 0xFF),
+                        "sans-serif-medium");
         label.setGravity(Gravity.CENTER);
         label.setSingleLine(true);
         label.setEllipsize(TextUtils.TruncateAt.END);

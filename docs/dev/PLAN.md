@@ -24,7 +24,7 @@ small native launcher that needs no computer after setup), but it taught us:
 - **Depth clock**: a big clock that sits *behind* a foreground silhouette (mountains, skyline). Fits the live-sky wallpaper (0.8) and needs
   no art files if the ridges are drawn procedurally.
 - **OLED black look**: pure black background with dim glass for OLED TVs (0.7). **Glass strength** steps plus an honest "no blur" fallback
-  (we have the Frosted glass switch; add strengths in 0.7).
+  (the Frosted glass switch has Soft, Medium and Deep since 0.6.9; the OLED look is still to do in 0.7).
 - **Quick buttons** worth having in the quick panel (0.9): sleep timer, screen saver, input switcher with names, and soundscapes made by a
   small noise generator (rain, brown noise) rather than audio files.
 - **Languages** are a feature, not a chore: couch-tv ships several. Translations move up to 0.7.
@@ -81,6 +81,15 @@ Still to do:
 - Folders, built on grab-to-move. Screen breaks. Optional 2-row Home plus a hint that the Apps tab has the rest.
 - Rename an app. Hero button launches the resumable programme through its deep link.
 - Replace the hardcoded pinned-app list with a rule based on recents.
+
+## 0.6.9 (done): one look, readable on any screen
+- Text never drops below 14 px and grows up to 15% when the TV's Display size asks for bigger things; a tile's name follows the tile width; a
+  type scale (`Metrics.DISPLAY` to `MICRO`) for new text. Glass strength (Soft, Medium, Deep). One focus motion for rows and the wallpaper picker.
+  The Up Next corner fix, the corner scale and the notice/About pass (all in `CHANGELOG.md`).
+- **Known limit, planned for 0.7:** the layout is a 960 x 540 design that scales with the screen's width. Screens taller than 16:9 leave spare
+  room at the bottom; screens wider than 16:9 (some projectors, 4096 x 2160, ultrawide) can cut the lowest row and tall panels. Fixing it properly
+  means a centred 960 x 540 "stage" that holds the content, the tab bar and the dialogs, with the wallpaper full-bleed behind it, and the glass
+  and scrims made to follow. That touches every screen, so it is its own change with a preview mode (extend the debug Preview size with 21:9 and 4:3).
 
 ## 0.6.4 (done)
 - Website port (Astra), Inter bundled, status capsule with the clock, Sun and Moon and System widgets.

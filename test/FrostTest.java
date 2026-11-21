@@ -54,4 +54,27 @@ public class FrostTest {
         Frost.blur(px, 8, 8, 2, 2);
         assertEquals(0xFFFF0000, px[27]);
     }
+
+    @Test
+    public void theVeilKeepsItsColourAndOnlyChangesOpacity() {
+        int veil = 0x80FF8040;
+        assertEquals("medium is the look before 0.6.9", veil, Frost.veil(veil, Frost.MEDIUM));
+        int soft = Frost.veil(veil, Frost.SOFT), deep = Frost.veil(veil, Frost.DEEP);
+        assertEquals(0xFF8040, soft & 0xFFFFFF);
+        assertEquals(0xFF8040, deep & 0xFFFFFF);
+        assertTrue("soft shows more wallpaper", (soft >>> 24) < 0x80);
+        assertTrue("deep shows less", (deep >>> 24) > 0x80);
+    }
+
+    @Test
+    public void theVeilNeverOverflowsAndUnknownStrengthsAreMedium() {
+        int dark = Frost.veil(0xD01C1C1E, Frost.DEEP);
+        assertEquals("deep still lets some wallpaper through", 0xF0, dark >>> 24);
+        int past = Frost.veil(0xF8102030, Frost.DEEP);
+        assertEquals("a veil already past the cap keeps its own", 0xF8, past >>> 24);
+        assertEquals(0xF8, Frost.veil(0xF8102030, Frost.MEDIUM) >>> 24);
+        assertEquals(0x30, Frost.veil(0x30FFFFFF, 7) >>> 24);
+        assertEquals(0x30, Frost.veil(0x30FFFFFF, -1) >>> 24);
+        assertEquals("a clear veil stays clear", 0, Frost.veil(0x00FFFFFF, Frost.DEEP) >>> 24);
+    }
 }

@@ -32,6 +32,7 @@ final class Screen {
      * down to fit the real screen.
      */
     static void show(android.app.Activity activity, android.view.View root) {
+        Layers.atStart(activity, root); // debug builds only: QA switches given on a cold start
         if (preview <= 0) {
             activity.setContentView(root);
             return;

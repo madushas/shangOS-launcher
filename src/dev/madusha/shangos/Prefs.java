@@ -27,6 +27,9 @@ final class Prefs {
 
     static final int POSTERS_OFF = 0, POSTERS_UNMETERED = 1, POSTERS_ANY = 2;
 
+    /** The strengths of the frosted glass (Settings, Glass strength); see {@link Frost}. */
+    static final int GLASS_SOFT = 0, GLASS_MEDIUM = 1, GLASS_DEEP = 2;
+
     private final SharedPreferences sp;
 
     Prefs(SharedPreferences sp) {
@@ -103,6 +106,16 @@ final class Prefs {
 
     boolean calm() {
         return flag(CALM);
+    }
+
+    /** How strong the frosted glass looks: GLASS_SOFT, GLASS_MEDIUM (the default) or GLASS_DEEP. */
+    int glassStrength() {
+        int strength = sp.getInt("glass_strength", GLASS_MEDIUM);
+        return Math.max(GLASS_SOFT, Math.min(GLASS_DEEP, strength));
+    }
+
+    void setGlassStrength(int strength) {
+        sp.edit().putInt("glass_strength", strength).apply();
     }
 
     /** How the Apps tab is ordered: "manual", "az" or "recent" (see AppList). */

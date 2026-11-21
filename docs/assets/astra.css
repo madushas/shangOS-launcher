@@ -310,6 +310,10 @@ code{font-size:.88em;background:var(--bg-2);border:1px solid var(--line);padding
 .table-wrap table{width:100%;border-collapse:collapse}
 .table-wrap th,.table-wrap td{padding:.6rem .75rem;border-bottom:1px solid var(--line);text-align:start;vertical-align:top}
 .table-wrap th{font-weight:600}
+/* The measured table: the best number in each row (and any within noise of it) is lit; the rest sit back. */
+.bench-best{padding:.1rem .45rem;background:color-mix(in srgb,var(--accent) 14%,transparent);border-bottom:2px solid var(--accent);color:var(--accent-2);font-weight:700}
+.bench-other{color:var(--text-3);font-weight:400}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 .list-clean{list-style:none;margin:0;padding:0}
 .list-clean>li+li{margin-top:var(--s2)}
 .btn--primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}

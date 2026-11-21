@@ -54,7 +54,7 @@ final class NameEditor {
     void show(int settingsRow) {
         FrameLayout o = overlays.open(0xA6000000);
         FrameLayout panel = new FrameLayout(context);
-        panel.setBackground(ui.shape(0xF51C1C1E, 24));
+        panel.setBackground(ui.shape(0xF51C1C1E, Metrics.CARD));
         panel.setElevation(ui.px(24));
         FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(ui.px(440), ui.px(232));
         lp.gravity = Gravity.CENTER;
@@ -83,7 +83,7 @@ final class NameEditor {
         field.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_WORDS);
         Runnable ring =
                 () -> {
-                    GradientDrawable bg = ui.shape(0x1FFFFFFF, 12);
+                    GradientDrawable bg = ui.shape(0x1FFFFFFF, Metrics.CONTROL);
                     if (field.hasFocus()) bg.setStroke(ui.px(1.5f), Color.WHITE);
                     field.setBackground(bg);
                 };

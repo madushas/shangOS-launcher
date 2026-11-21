@@ -52,7 +52,7 @@ final class AppArt extends View {
 
     @Override
     protected void onDraw(Canvas c) {
-        float w = getWidth(), h = getHeight(), radius = ui.px(16);
+        float w = getWidth(), h = getHeight(), radius = ui.px(Metrics.RADIUS);
         int accent = repo.accent(app, redraw);
         if (accent != tintedWith) {
             int[] colours = Tint.gradient(accent);

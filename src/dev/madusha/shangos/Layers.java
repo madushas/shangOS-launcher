@@ -33,6 +33,17 @@ final class Layers {
         return !Flavor.DEBUG || clip;
     }
 
+    /**
+     * A cold start: the switches the activity was started with. {@code onNewIntent} only hears of
+     * later starts, so without this a fresh process ignored them. The tiles rise in for about
+     * 0.7 s and would undo a hidden tile, so the switches wait a second.
+     */
+    static void atStart(android.app.Activity activity, View root) {
+        if (!Flavor.DEBUG) return;
+        String names = activity.getIntent().getStringExtra("shangos.layers");
+        if (names != null) root.postDelayed(() -> apply(names, root), 1000);
+    }
+
     static void apply(String names, View root) {
         if (!Flavor.DEBUG || names == null) return;
         List<String> off = Arrays.asList(names.split(","));

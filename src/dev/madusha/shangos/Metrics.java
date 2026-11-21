@@ -10,8 +10,36 @@ final class Metrics {
 
     static final String COMPACT = "compact", COMFORTABLE = "comfortable", COZY = "cozy";
 
-    /** Corner radius of a tile; generous, like tvOS. */
+    /**
+     * Corner radius of a tile, and of the pictures on cards (Up Next shows app tiles too, so its
+     * cards use this, not their own number); generous, like tvOS.
+     */
     static final float RADIUS = 24;
+
+    /**
+     * Corner radius of a glass surface: a widget, the tab bar, a panel or a card of text. The same
+     * as a tile's, so surfaces and tiles read as one family.
+     */
+    static final float CARD = RADIUS;
+
+    /** Corner radius of a row, a button or a picker cell inside a panel. */
+    static final float CONTROL = 12;
+
+    /**
+     * The type scale, in design units: a big number, a title, a heading, body text, a caption and
+     * the smallest label. New text picks one of these instead of a number of its own, so screens
+     * agree with each other.
+     */
+    static final float DISPLAY = 34, TITLE = 22, HEADING = 18, BODY = 15, CAPTION = 13, MICRO = 11;
+
+    /**
+     * The smallest text, in pixels. At 720p the smallest label (10.5 units) is exactly this, so
+     * nothing changes there; on a smaller picture, text stays readable instead of shrinking.
+     */
+    static final int MIN_TEXT_PX = 14;
+
+    /** The most text is enlarged for a screen that asks for bigger things (see textScale). */
+    static final float MAX_TEXT_SCALE = 1.15f;
 
     static float tileW = 140, tileH = 79, gap = 40;
 
@@ -25,6 +53,34 @@ final class Metrics {
         if (COMPACT.equals(size)) set(6, 120, 28);
         else if (COZY.equals(size)) set(4, 176, 52);
         else set(5, 140, 40);
+    }
+
+    /**
+     * How much to enlarge text for this screen. An Android TV draws 960 dp across, so a design unit
+     * is one dp and this is 1. When the TV's own Display size is set larger, or the screen is a
+     * smaller one, fewer dp fit across, a dp is wider than a unit, and text grows with it (to
+     * {@link #MAX_TEXT_SCALE}) so it stays as easy to read as the user asked. It never shrinks.
+     *
+     * @param unit pixels in one design unit (screen width / 960)
+     * @param density pixels in one dp, as the system reports it
+     */
+    static float textScale(float unit, float density) {
+        if (unit <= 0 || density <= 0) return 1;
+        return Math.max(1, Math.min(MAX_TEXT_SCALE, density / unit));
+    }
+
+    /** Text of {@code units} design units, in pixels: scaled, but never below the floor. */
+    static int textPx(float units, float unit, float scale) {
+        return Math.max(MIN_TEXT_PX, Math.round(units * scale * unit));
+    }
+
+    /**
+     * The size of an app's name under its tile: it follows the tile's width (a cozy tile is
+     * wider, a compact one narrower), in half units, between 11.5 and 15. The usual tile keeps
+     * the 13.5 it always had.
+     */
+    static float labelSize() {
+        return Math.max(11.5f, Math.min(15f, Math.round(tileW * 0.097f * 2) / 2f));
     }
 
     /** Wi-Fi strength (dBm) as 1 to 4 bars: the status icon's rule, here so it is unit tested. */

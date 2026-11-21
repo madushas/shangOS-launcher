@@ -227,7 +227,7 @@ final class PrivacyScreen {
         list.setClipChildren(false);
         o.addView(list, ui.pos(500, 370, 40, 116));
         FrameLayout card = new FrameLayout(activity);
-        card.setBackground(ui.shape(0x1AFFFFFF, 22));
+        card.setBackground(ui.shape(0x1AFFFFFF, Metrics.CARD));
         o.addView(card, ui.pos(352, 360, 560, 122));
         infoTitle = ui.text("", 19, Color.WHITE, "sans-serif-medium");
         card.addView(infoTitle, ui.pos(316, 26, 18, 18));

@@ -16,6 +16,9 @@ final class Ui {
     final Context context;
     final float unit;
 
+    /** How much text is enlarged for this screen (see {@link Metrics#textScale}); 1 on a TV. */
+    final float textScale;
+
     /** The blurred wallpaper behind glass panels; shared by every Ui of the launcher. */
     final Frost frost;
 
@@ -27,6 +30,8 @@ final class Ui {
         this.context = context;
         this.unit = unit;
         this.frost = frost;
+        this.textScale =
+                Metrics.textScale(unit, context.getResources().getDisplayMetrics().density);
     }
 
     int px(float units) {
@@ -99,11 +104,12 @@ final class Ui {
         }
     }
 
+    /** Text of {@code size} design units (see the type scale in {@link Metrics}). */
     TextView text(String value, float size, int color, String family) {
         TextView t = new TextView(context);
         t.setText(value);
         t.setTextColor(color);
-        t.setTextSize(TypedValue.COMPLEX_UNIT_PX, px(size));
+        t.setTextSize(TypedValue.COMPLEX_UNIT_PX, Metrics.textPx(size, unit, textScale));
         t.setTypeface(face(family));
         t.setIncludeFontPadding(false);
         return t;

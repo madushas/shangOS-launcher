@@ -87,7 +87,7 @@ public final class MainActivity extends Activity {
         prefs = Prefs.of(this);
         Screen.preview = Flavor.DEBUG ? prefs.previewWidth() : 0;
         Metrics.apply(prefs.layoutSize());
-        ui = new Ui(this, Screen.width(this) / 960f);
+        ui = new Ui(this, Screen.width(this) / 960f, new Frost(prefs::glassStrength));
         overlays = new Overlays(overlaysHost, ui);
         WatchNext watchNext = new WatchNext(this, WidgetBoard.IO);
         hero = new Hero(this, ui, prefs, handler, watchNext, () -> feedback.motion(), () -> light);

@@ -30,7 +30,7 @@ abstract class Widget extends FrameLayout {
 
     /** The card at rest: frosted glass, or the plain translucent fill. */
     final Drawable restBackground() {
-        return ui.glass(this, light(), 22);
+        return ui.glass(this, light(), Metrics.CARD);
     }
 
     /**

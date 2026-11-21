@@ -57,24 +57,25 @@ final class AboutScreen {
                         + version(activity)
                         + (Flavor.NETWORK ? "" : " · offline build")
                         + (Flavor.DEBUG ? " · debug" : "");
-        panel.addView(ui.text(build, 13, 0x99FFFFFF, "sans-serif"), ui.pos(400, 18, 107, 66));
+        panel.addView(ui.text(build, 14, 0xB3FFFFFF, "sans-serif"), ui.pos(400, 20, 107, 66));
         panel.addView(
                 paragraph(
                         "A calm, private home screen for Android TV. No ads, no sponsored rows, no"
                                 + " tracking: your settings stay on this TV. Hold OK on an app to"
                                 + " organise your Home.",
-                        13,
-                        0xC7FFFFFF),
-                ui.pos(500, 56, 27, 112));
+                        14,
+                        0xD9FFFFFF),
+                ui.pos(500, 62, 27, 110));
         panel.addView(
                 paragraph(
                         "Open source under the MIT licence, and based on Luma TV by 0xProbability."
                             + " Wallpapers are Pexels photographs. Licences shows everything it uses.",
-                        12,
-                        0x99FFFFFF),
+                        13,
+                        0xB3FFFFFF),
                 ui.pos(500, 54, 27, 182));
         LinearLayout buttons = new LinearLayout(activity);
         buttons.setOrientation(LinearLayout.HORIZONTAL);
+        buttons.setClipChildren(false);
         panel.addView(buttons, ui.pos(500, 96, 26, 282));
         LinearLayout left = column(), right = column();
         buttons.addView(left, new LinearLayout.LayoutParams(ui.px(200), -1));
@@ -98,6 +99,7 @@ final class AboutScreen {
     private LinearLayout column() {
         LinearLayout c = new LinearLayout(activity);
         c.setOrientation(LinearLayout.VERTICAL);
+        c.setClipChildren(false); // a focused row grows a little
         return c;
     }
 }

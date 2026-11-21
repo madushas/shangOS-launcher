@@ -22,6 +22,19 @@ public class PrefsTest {
     }
 
     @Test
+    public void glassStrengthDefaultsToMediumAndIsClamped() {
+        FakePrefs f = new FakePrefs();
+        Prefs p = new Prefs(f);
+        assertEquals(Prefs.GLASS_MEDIUM, p.glassStrength());
+        p.setGlassStrength(Prefs.GLASS_DEEP);
+        assertEquals(Prefs.GLASS_DEEP, p.glassStrength());
+        f.data.put("glass_strength", 42);
+        assertEquals(Prefs.GLASS_DEEP, p.glassStrength());
+        f.data.put("glass_strength", -3);
+        assertEquals(Prefs.GLASS_SOFT, p.glassStrength());
+    }
+
+    @Test
     public void postersModeIsClamped() {
         FakePrefs f = new FakePrefs();
         Prefs p = new Prefs(f);

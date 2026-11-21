@@ -6,6 +6,7 @@ The working plan, with research, rules and every phase, is in [`PLAN.md`](PLAN.m
   resume hero, room lighting, launch from the tile, grab to move, your photo, your city.
 - **0.5 (done in this build)**: Polish: frosted glass, hero backdrop, calm mode, skeleton shimmer, rise-in, tinted shadows, status icons.
 - **0.6** (started): Settings in pages, Apps order and hidden apps, city for sunrise are done; rows you choose, folders and the Menu-key edit mode are next.
+- **0.6.9 (done)**: one corner scale, text that follows the screen, glass strength, one focus motion.
 - **0.6.1 (done)**: safety: scripts leave the TV's own home on, a crash guard, loop recovery docs.
 - **0.7**: Widgets pack, Home-button redirect, translations. **0.8**: Ambient (live sky, slideshow). **0.9**: Control and trust (quick panel, profiles, privacy receipt).
 - **1.0 bar**: translations and accessibility, baselines, two weeks of daily use on three TVs, verifiable releases.
