@@ -177,47 +177,50 @@ final class SettingsPages {
                                         "Fluid motion",
                                         "Springy focus, depth and the 3D flight into your TV. Turn"
                                                 + " off for a calmer, simpler screen.")));
-        controls.add(
-                kit.option(
-                        list,
-                        "Living wallpaper",
-                        null,
-                        Prefs.AMBIENT,
-                        host::ambientChanged,
-                        () ->
-                                kit.preview(
-                                        Wallpaper.THUMBS[kit.style()],
-                                        "Living wallpaper",
-                                        "Clouds drift and water moves very slowly. Pauses whenever"
-                                                + " an app is open.")));
-        controls.add(
-                kit.option(
-                        list,
-                        "Room lighting",
-                        null,
-                        Prefs.STAGE,
-                        () -> {},
-                        () ->
-                                kit.preview(
-                                        Wallpaper.THUMBS[kit.style()],
-                                        "Room lighting",
-                                        "The light behind your apps takes the colour of the one you"
-                                                + " are on, and the wallpaper dims a little. Off"
-                                                + " with the Light performance setting.")));
-        controls.add(
-                kit.option(
-                        list,
-                        "Frosted glass",
-                        null,
-                        Prefs.GLASS,
-                        host::glassChanged,
-                        () ->
-                                kit.preview(
-                                        Wallpaper.THUMBS[kit.style()],
-                                        "Frosted glass",
-                                        "Bars, cards and menus show a blurred copy of the"
-                                                + " wallpaper behind them. Off with the Light"
-                                                + " performance setting.")));
+        // Wallpaper effects need a TV that can spare the GPU: on Light they are off whatever is
+        // chosen, so their switches are not offered there.
+        if (host.performance().tier().animates()) {
+            controls.add(
+                    kit.option(
+                            list,
+                            "Living wallpaper",
+                            null,
+                            Prefs.AMBIENT,
+                            host::ambientChanged,
+                            () ->
+                                    kit.preview(
+                                            Wallpaper.THUMBS[kit.style()],
+                                            "Living wallpaper",
+                                            "Clouds drift and water moves very slowly. Pauses"
+                                                + " whenever an app is open.")));
+            controls.add(
+                    kit.option(
+                            list,
+                            "Room lighting",
+                            null,
+                            Prefs.STAGE,
+                            () -> {},
+                            () ->
+                                    kit.preview(
+                                            Wallpaper.THUMBS[kit.style()],
+                                            "Room lighting",
+                                            "The light behind your apps takes the colour of the one"
+                                                + " you are on, and the wallpaper dims a"
+                                                + " little.")));
+            controls.add(
+                    kit.option(
+                            list,
+                            "Frosted glass",
+                            null,
+                            Prefs.GLASS,
+                            host::glassChanged,
+                            () ->
+                                    kit.preview(
+                                            Wallpaper.THUMBS[kit.style()],
+                                            "Frosted glass",
+                                            "Bars, cards and menus show a blurred copy of the"
+                                                    + " wallpaper behind them.")));
+        }
         controls.add(
                 kit.option(
                         list,
@@ -237,7 +240,7 @@ final class SettingsPages {
                 kit.option(
                         list,
                         "Performance",
-                        host::performanceLabel,
+                        () -> host.performance().label(),
                         null,
                         () ->
                                 overlays.menu(
@@ -256,10 +259,12 @@ final class SettingsPages {
                                         "Auto chooses for this TV ("
                                                 + Hardware.describe(activity)
                                                 + "). Light keeps the wallpaper still, the lightest"
-                                                + " and coolest. Balanced and Quality add slow"
-                                                + " gliding light that pauses while you use the"
-                                                + " remote and after a long time without a key"
-                                                + " press.")));
+                                                + " and coolest, and hides Living wallpaper, Room"
+                                                + " lighting and Frosted glass, which it would"
+                                                + " switch off anyway. Balanced and Quality add"
+                                                + " them, with slow gliding light that pauses"
+                                                + " while you use the remote and after a long"
+                                                + " time without a key press.")));
         controls.add(
                 kit.option(
                         list,

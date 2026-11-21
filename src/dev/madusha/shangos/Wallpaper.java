@@ -3,6 +3,7 @@ package dev.madusha.shangos;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -12,6 +13,8 @@ import android.graphics.RectF;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.SystemClock;
+import android.view.Display;
 import android.view.View;
 import android.widget.FrameLayout;
 
@@ -273,6 +276,11 @@ final class Wallpaper extends FrameLayout {
     /** No glide starts, and a running one stops, within this long of a key press. */
     private static final long QUIET_MS = 2500;
 
+    /** A move within this long of the one before is "rapid": no long full-screen animation. */
+    private static final long RAPID_MS = 450;
+
+    private final Pace followPace = new Pace(RAPID_MS), stagePace = new Pace(RAPID_MS);
+    private final FrameProbe probe = new FrameProbe();
     private final Host host;
     private final Executor loader;
     private final Ui ui;
@@ -325,13 +333,34 @@ final class Wallpaper extends FrameLayout {
         update();
     }
 
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        if (Flavor.DEBUG && getContext() instanceof Activity) {
+            Display display = getDisplay();
+            probe.attach(
+                    ((Activity) getContext()).getWindow(),
+                    display == null ? 60f : display.getRefreshRate());
+        }
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        probe.detach();
+        super.onDetachedFromWindow();
+    }
+
     // ---- Parallax: the picture and the light shift a little as focus moves along the row ----
     void follow(int index) {
         picture.animate().cancel();
         glowHolder.animate().cancel();
         float position = Metrics.rowPosition(index);
         float arc = 1 - position * position;
-        if (host.motion()) {
+        // Moving in a row (key repeat, quick presses): jump the few pixels at once. A one-second
+        // slide of a full-screen picture would repaint the whole screen every frame.
+        boolean rapid = followPace.rapid(SystemClock.uptimeMillis());
+        if (!host.motion()) rest();
+        else if (!rapid) {
             picture.animate()
                     .translationX(-position * ui.px(11))
                     .translationY(ui.px(arc * 2.2f))
@@ -345,7 +374,12 @@ final class Wallpaper extends FrameLayout {
                     .setDuration(1000)
                     .setInterpolator(Motion.DRIFT)
                     .start();
-        } else rest();
+        } else {
+            picture.setTranslationX(-position * ui.px(11));
+            picture.setTranslationY(ui.px(arc * 2.2f));
+            glowHolder.setTranslationX(-position * ui.px(20));
+            glowHolder.setTranslationY(ui.px(arc * 3f));
+        }
     }
 
     /**
@@ -358,7 +392,11 @@ final class Wallpaper extends FrameLayout {
             stage.clear();
             return;
         }
-        stage.show(accent, isPale(Math.max(0, requestedVariant)), host.motion());
+        stage.show(
+                accent,
+                isPale(Math.max(0, requestedVariant)),
+                host.motion(),
+                stagePace.rapid(SystemClock.uptimeMillis()));
     }
 
     /** Focus left the apps: the room light fades out unless another app takes it over. */

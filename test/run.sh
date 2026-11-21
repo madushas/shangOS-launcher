@@ -9,20 +9,16 @@ H="${HAMCREST_JAR:-/usr/share/java/hamcrest-core.jar}"
     exit 1
 }
 ANDROID_JAR="${ANDROID_JAR:?set ANDROID_JAR (android.jar is needed to compile Net.java)}"
-[ -f "$ANDROID_JAR" ] || {
-    echo "android.jar not found at '$ANDROID_JAR'"
-    exit 1
-}
 PKG="$(sed -n 's/.*package="\([^"]*\)".*/\1/p' AndroidManifest.xml | head -1)"
 OUT=build/test
 rm -rf "$OUT"
 mkdir -p "$OUT/gen"
 printf 'package %s;\nfinal class Flavor { static final boolean DEBUG=false, NETWORK=true; private Flavor(){} }\n' "$PKG" >"$OUT/gen/Flavor.java"
 SRC=src/${PKG//.//}
-SOURCES=("$SRC/Net.java" "$SRC/Dbg.java" "$SRC/Spring.java" "$SRC/Prefs.java" "$SRC/Hardware.java" "$SRC/AppCache.java" "$SRC/Tint.java" "$SRC/Recency.java" "$SRC/AppList.java" "$SRC/Resume.java" "$SRC/Places.java" "$SRC/Cities.java" "$SRC/Frost.java" "$SRC/CrashGuard.java" "$SRC/SystemHome.java" "$SRC/Metrics.java" "$SRC/Moon.java" "$SRC/CardFit.java" "$SRC/Daylight.java" "$SRC/Devices.java" test/*.java)
+SOURCES=("$SRC/Net.java" "$SRC/Dbg.java" "$SRC/Spring.java" "$SRC/Prefs.java" "$SRC/Hardware.java" "$SRC/AppCache.java" "$SRC/Tint.java" "$SRC/Recency.java" "$SRC/AppList.java" "$SRC/Resume.java" "$SRC/Places.java" "$SRC/Cities.java" "$SRC/Frost.java" "$SRC/CrashGuard.java" "$SRC/SystemHome.java" "$SRC/Metrics.java" "$SRC/Moon.java" "$SRC/CardFit.java" "$SRC/Daylight.java" "$SRC/Devices.java" "$SRC/Pace.java" "$SRC/FrameStats.java" test/*.java)
 LIBS=""
 for jar in libs/*.jar; do [ -f "$jar" ] && LIBS="$LIBS:$jar"; done
-javac -encoding UTF-8 -nowarn -d "$OUT" -cp "$ANDROID_JAR:$J:$H$LIBS" "$OUT/gen/Flavor.java" "${SOURCES[@]}"
+javac -encoding UTF-8 -d "$OUT" -cp "$ANDROID_JAR:$J:$H$LIBS" "$OUT/gen/Flavor.java" "${SOURCES[@]}"
 mapfile -t TESTS < <(find test -name '*Test.java' -printf '%f
 ' | sed "s/\.java\$//; s/^/$PKG./" | sort)
 java -cp "$OUT:$J:$H:$ANDROID_JAR" org.junit.runner.JUnitCore "${TESTS[@]}"

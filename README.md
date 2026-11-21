@@ -3,13 +3,13 @@
 A fast, private, modern home screen for Android TV. Plain Java, **no third-party libraries in the app** (the one jar in `libs/` is annotations for the compiler and is not packaged), no telemetry, no
 accounts, no ads. Source: https://github.com/madushas/shangos-launcher. Forked from [Luma TV](https://github.com/0xProbabillity/luma-tv) (MIT); see `NOTICE.md`.
 
-**Status: 0.4.0 is the latest release; 0.6.2 is in development. Built, unit-tested and linted; field-tested on one TV stick.**
+**Status: version 0.6.8 (see `CHANGELOG.md` for what each version changed). Built, unit-tested and linted; field-tested on one TV stick.**
 
 Website and setup guide: https://shangos.madusha.dev (source in `docs/`). Releases are signed; the fingerprint is on each release and in the app.
 
 Target: Android 12+ (API 31), landscape, leanback. Developed on a 1.4 GB, 32-bit, 720p Android 14 stick: if it is smooth there, it is smooth anywhere.
 A screen saver (clock over your wallpaper), tiles tinted from each app's own icon, and a hero line that is real information are shangOS's own.
-A hardware check picks how much the wallpaper animates (Light, Balanced or Quality); Settings, Performance overrides it.
+A hardware check picks how much the wallpaper animates (Light, Balanced or Quality); Settings, Performance overrides it. On Light, the wallpaper stays still and Settings hides the switches for living wallpaper, room lighting and frosted glass, which Light turns off anyway.
 
 ## Privacy, in one table
 | | Full build (`release`) | `offline` build |
@@ -25,6 +25,7 @@ fingerprint. `Offline mode` there switches all network use off at runtime.
 
 ## Build
 Needs JDK 17+, the Android SDK (`build-tools`, `platforms;android-34`), python3, zip. Linux, macOS, or Windows via WSL2.
+The sources use `androidx.annotation` for documentation only: fetch the jar named in `libs/README.md` once. Release and offline builds run R8 (`proguard-rules.pro`); `SHRINK=0 ./build.sh release` skips it.
 ```
 export ANDROID_SDK_ROOT=$HOME/android-sdk
 ./build.sh release        # or: offline | debug        -> dist/shangos-<variant>.apk

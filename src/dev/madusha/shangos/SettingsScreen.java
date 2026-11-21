@@ -47,8 +47,8 @@ final class SettingsScreen {
         /** Rebuild Settings and select row {@code row} of the section shown. */
         void reload(int row);
 
-        /** "Auto (Light)": the performance choice and what Auto picked. */
-        String performanceLabel();
+        /** The performance choice and the tier it gives on this TV. */
+        Performance performance();
     }
 
     // The sections, in the order of the list on the left.
@@ -180,8 +180,7 @@ final class SettingsScreen {
         for (int g = 0; g < TITLES.length; g++) {
             View item = sectionItem(g);
             rail.add(item);
-            content.addView(
-                    item, ui.pos(RAIL_W, ITEM_H, RAIL_X, TOP + g * (ITEM_H + ITEM_GAP)));
+            content.addView(item, ui.pos(RAIL_W, ITEM_H, RAIL_X, TOP + g * (ITEM_H + ITEM_GAP)));
         }
         FrameLayout panel = new FrameLayout(activity);
         panel.setBackground(ui.glass(panel, host.light(), 24));

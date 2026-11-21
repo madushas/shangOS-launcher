@@ -15,6 +15,9 @@ Layout is in "design units" (1/960 of the screen width) so one design fits any T
 | `AppLauncher` | Opening an app (its window grows out of the tile) and remembering it, and the menu: first position, hide, App info, Uninstall | `AppList`, `Prefs`, `Overlays`, `Host` interface |
 | `StageLight` | The room light: the focused app's colour behind the tiles and a slight dim, two cross-faded gradient views (nothing per frame) | Android only; driven by `Wallpaper` |
 | `WatchNext`, `Resume`, `Posters` | Android TV's Continue watching list (read off the main thread, newest programme per app), the words for it ("Continue: ... · 18 min left", pure and unit tested), and programme pictures through `Net` | `Net`, `Images`, `Prefs` |
+| `Pace` | Tells a quick repeat of a move from a single one, so full-screen effects can skip their long animation while the D-pad is held | Pure Java |
+| `FrameStats`, `FrameProbe` | Debug only: logs late frames and whether the main thread or the GPU caused them (`adb logcat -s shangOS/frames`) | Pure Java / `FrameMetrics` |
+| `Layers` | Debug only: switches the wallpaper, tiles, tile shadows and tile clipping off one at a time (`--es shangos.layers`), to find which layer makes frames late | `Wallpaper`, `AppTile` |
 | `PageMotion` | The entrance of a page: its parts fade in while sliding a little from the side the tab bar moved towards | `Ui`, `Motion` |
 | `WallpaperArt` | Fits a wallpaper picture to the screen and draws the legibility veil over it (called by `Wallpaper` off the main thread) | Android graphics only |
 | `PhotoStore`, `PhotoProvider` | "Your photo": the picture kept in private storage, and the write-only door for it, protected by DUMP so only adb can use it (`shangos.sh wallpaper`); `PhotoStore.importFrom` also takes a picture chosen in the system picker | `Wallpaper`, `Prefs`, `Images` |

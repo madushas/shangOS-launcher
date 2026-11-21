@@ -13,7 +13,7 @@ import android.widget.FrameLayout;
  * costs one gradient per focus and nothing per frame.
  */
 final class StageLight extends FrameLayout {
-    private static final long FADE_MS = 700, LINGER_MS = 160;
+    private static final long FADE_MS = 700, QUICK_MS = 180, LINGER_MS = 160;
 
     private final View[] lights = new View[2];
     private final View dim;
@@ -21,6 +21,7 @@ final class StageLight extends FrameLayout {
     private final int size;
     private int active;
     private int color; // the colour now lit, 0 when none
+    private long fadeMs = FADE_MS; // short while focus moves quickly: fewer full-screen frames
 
     /** Focus left the apps (or moved between two): fade out unless another app takes over. */
     private final Runnable off = () -> apply(0, false, 0, true);
@@ -46,11 +47,12 @@ final class StageLight extends FrameLayout {
     }
 
     /**
-     * Lights the room with {@code accent} (0 for no colour) and dims the picture a little.
-     * {@code pale} is a light wallpaper, which takes less of both.
+     * Lights the room with {@code accent} (0 for no colour) and dims the picture a little. {@code
+     * pale} is a light wallpaper, which takes less of both.
      */
-    void show(int accent, boolean pale, boolean animate) {
+    void show(int accent, boolean pale, boolean animate, boolean quick) {
         handler.removeCallbacks(off);
+        fadeMs = quick ? QUICK_MS : FADE_MS;
         apply(accent, pale, pale ? .06f : .16f, animate);
     }
 
@@ -93,10 +95,10 @@ final class StageLight extends FrameLayout {
         return g;
     }
 
-    private static void fade(View view, float to, boolean animate) {
+    private void fade(View view, float to, boolean animate) {
         view.animate().cancel();
         if (animate)
-            view.animate().alpha(to).setDuration(FADE_MS).setInterpolator(Motion.EASE).start();
+            view.animate().alpha(to).setDuration(fadeMs).setInterpolator(Motion.EASE).start();
         else view.setAlpha(to);
     }
 }

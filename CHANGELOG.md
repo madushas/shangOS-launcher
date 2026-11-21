@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.6.8: Smoother frames and honest Settings
+- **Full-screen wallpaper effects skip their long animations while focus is moving in a row.** Each D-pad move started a one-second slide of the
+  whole wallpaper picture and its light, and a 700 ms cross-fade of up to four full-screen layers (stage light, dim). Moves less than 450 ms apart
+  (`Pace`) now jump the wallpaper the few pixels at once and fade the stage light in 180 ms. A single move looks the same as before. This
+  reduces repaint work during fast navigation, but it did not change the `baseline.sh` frame test on a Light-tier onn TV (27.8% late before and
+  after), and turning every animation off did not either (`tools/jank-ab.sh`): in that test the late frames are not caused by motion.
+- **Settings no longer offers switches that do nothing.** On a Light-performance TV, Living wallpaper, Room lighting and Frosted glass are off whatever is
+  chosen, yet their switches were shown. They now appear only on Balanced and Quality, and the Performance row says so. Fluid motion stays: Light does not turn
+  tile motion off, so it is the user's main lever on a weak TV.
+- **Frame probe (debug builds).** `FrameProbe` and `FrameStats` log once a second how many frames were late and whether the main thread or the GPU
+  was the cause: `adb logcat -s shangOS/frames`. Use it to see what is left, and to compare Light, Balanced and Quality.
+- **Finding which layer is late (debug builds).** `Layers` switches the wallpaper, the tiles, the tiles' shadows and their rounded clipping off one at
+  a time (`adb shell am start -n dev.madusha.shangos/.MainActivity --es shangos.layers wallpaper,shadow`). `tools/jank-layers.sh` runs the
+  `baseline.sh` key loop for each and prints the late share and GPU time side by side; `tools/jank-ab.sh` compares normal against all animation off.
+- Tests: 100. VERSION 0.6.8 (versionCode 22).
+
 ## 0.6.7: Project cleanup and R8 builds
 - **R8 shrinking for release and offline builds.** `build.sh` runs R8 with `proguard-rules.pro` (shrink and optimise, no renaming, so crash reports
   stay readable). The aapt2 link step supplies the keep rules for manifest components. Debug still uses d8; `SHRINK=0` skips R8; a build-tools
@@ -20,7 +36,6 @@
 - **Tidied:** the manifest's checked-in version now matches `VERSION`, the Now Playing comment sits above its service, `SettingsPages` uses `Prefs`
   key constants, `AppRepo.TRIM_BACKGROUND` names the trim level that was a bare `40`, `Devices` now has a JUnit test in `test/` that CI runs
   (it was a stand-alone program in `tools/`).
-- Tests: 93. VERSION 0.6.7 (versionCode 21).
 
 ## 0.6.6: Benchmarks state the performance choice they measured
 - **`tools/bench.sh` needs no environment variables.** It makes each launcher the default Home and compiles it first (`SET_HOME=1`,

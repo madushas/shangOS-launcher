@@ -328,10 +328,10 @@ public final class MainActivity extends Activity {
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
-        // QA hooks (daylight preview, demo content, fake inputs) exist only in the debug build: the
-        // Activity is exported,
-        // so in release and offline builds another app could otherwise put fake content on the TV.
+        // QA hooks (daylight preview, demo content, fake inputs, layer switches) exist only in the
+        // debug build: the Activity is exported, so elsewhere another app could fake content.
         if (Flavor.DEBUG) {
+            Layers.apply(intent.getStringExtra("shangos.layers"), root);
             String look = intent.getStringExtra("shangos.daylight");
             if (look != null && look.matches("day|night|auto")) {
                 daylightSync.preview(look);
@@ -783,8 +783,8 @@ public final class MainActivity extends Activity {
                     MainActivity.this.reload(row);
                 }
 
-                public String performanceLabel() {
-                    return performance.label();
+                public Performance performance() {
+                    return performance;
                 }
             };
 }

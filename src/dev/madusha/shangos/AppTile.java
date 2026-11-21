@@ -96,8 +96,8 @@ final class AppTile extends FrameLayout {
         GradientDrawable faceBg = ui.shape(Tint.NEUTRAL, Metrics.RADIUS);
         faceBg.setStroke(Math.max(1, ui.px(.6f)), 0x1FFFFFFF);
         face.setBackground(faceBg);
-        face.setClipToOutline(true);
-        face.setElevation(ui.px(2));
+        face.setClipToOutline(Layers.clip());
+        face.setElevation(Layers.elevation(ui.px(2)));
         face.setCameraDistance(ui.px(900));
         art = new AppArt(context, ui, repo, app);
         face.addView(art, new FrameLayout.LayoutParams(-1, -1));
@@ -109,9 +109,7 @@ final class AppTile extends FrameLayout {
         rim.setAlpha(0);
         face.setForeground(rim);
         addView(face, ui.pos(Metrics.tileW, Metrics.tileH, 0, 0));
-        label =
-                ui.text(
-                        app.label, 13.5f, Theme.ink(host.light(), 0xFF), "sans-serif-medium");
+        label = ui.text(app.label, 13.5f, Theme.ink(host.light(), 0xFF), "sans-serif-medium");
         label.setGravity(Gravity.CENTER);
         label.setSingleLine(true);
         label.setEllipsize(TextUtils.TruncateAt.END);
@@ -129,9 +127,15 @@ final class AppTile extends FrameLayout {
         setOnKeyListener((v, key, e) -> onKey(key, e));
     }
 
+    /** Debug builds: puts the tile's clipping and shadow back after {@link Layers} changed them. */
+    void layers() {
+        face.setClipToOutline(Layers.clip());
+        face.setElevation(Layers.elevation(ui.px(isFocused() ? 14 : 2)));
+    }
+
     private void onFocus(boolean f) {
         movement.focus(f);
-        face.setElevation(ui.px(f ? 14 : 2));
+        face.setElevation(Layers.elevation(ui.px(f ? 14 : 2)));
         rim.setAlpha(f ? 210 : 0);
         label.animate().cancel();
         if (host.motion())
@@ -154,10 +158,7 @@ final class AppTile extends FrameLayout {
         else
             requestRectangleOnScreen(
                     new Rect(
-                            -ui.px(12),
-                            -ui.px(14),
-                            getWidth() + ui.px(12),
-                            getHeight() + ui.px(5)),
+                            -ui.px(12), -ui.px(14), getWidth() + ui.px(12), getHeight() + ui.px(5)),
                     false);
     }
 
@@ -166,9 +167,12 @@ final class AppTile extends FrameLayout {
      * The colour is known once the icon has been read (then this runs again).
      */
     private void tintShadow() {
-        int accent = repo.accent(app, () -> {
-            if (isAttachedToWindow() && isFocused()) tintShadow();
-        });
+        int accent =
+                repo.accent(
+                        app,
+                        () -> {
+                            if (isAttachedToWindow() && isFocused()) tintShadow();
+                        });
         face.setOutlineSpotShadowColor(
                 accent == Tint.NEUTRAL ? 0xFF000000 : 0xFF000000 | (accent & 0x00FFFFFF));
     }
